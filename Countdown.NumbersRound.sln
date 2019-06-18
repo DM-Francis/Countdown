@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countdown.NumbersRound", "Countdown.NumbersRound\Countdown.NumbersRound.csproj", "{6F35E4F3-A074-42D0-9947-856A6FD71FCD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F35E4F3-A074-42D0-9947-856A6FD71FCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F35E4F3-A074-42D0-9947-856A6FD71FCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F35E4F3-A074-42D0-9947-856A6FD71FCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F35E4F3-A074-42D0-9947-856A6FD71FCD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {408E6777-5AD0-4ABB-9DEE-382D80722D5E}
+	EndGlobalSection
+EndGlobal
