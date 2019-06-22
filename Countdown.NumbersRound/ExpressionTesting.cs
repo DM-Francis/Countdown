@@ -1,15 +1,12 @@
-﻿using Combinatorics.Collections;
-using System;
-using System.Linq.Expressions;
+﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using System.Linq.Expressions;
 
 namespace Countdown.NumbersRound
 {
     internal static class ExpressionTesting
     {
-        private static Dictionary<int, List<System.Linq.Expressions.Expression>> _expressionCache = new Dictionary<int, List<System.Linq.Expressions.Expression>>();
+        private static Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private static List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
         private static int _N = 6;
         private static int _target = 677;
@@ -19,7 +16,7 @@ namespace Countdown.NumbersRound
 
         public static void TestExpression()
         {
-            var expressions = new List<System.Linq.Expressions.Expression>();
+            var expressions = new List<Expression>();
             for (int i = 1; i <= 6; i++)
             {
                 _N = i;
@@ -35,16 +32,16 @@ namespace Countdown.NumbersRound
         }
 
         // Method to create possible expression trees with N leaves.
-        public static List<System.Linq.Expressions.Expression> GetPossibleTrees(int N)
+        public static List<Expression> GetPossibleTrees(int N)
         {
             // Assume the same binary operation: addition
             // Assume only one possible number: 1
-            var resultList = new List<System.Linq.Expressions.Expression>();
+            var resultList = new List<Expression>();
 
             // Check cache first
             if (_expressionCache.ContainsKey(N))
             {
-                _expressionCache.TryGetValue(N, out List<System.Linq.Expressions.Expression> cacheResult);
+                _expressionCache.TryGetValue(N, out List<Expression> cacheResult);
                 return cacheResult;
             }
 
@@ -56,9 +53,9 @@ namespace Countdown.NumbersRound
             {
                 for (int x = 1; x < N; x++)
                 {
-                    foreach(var leftTree in GetPossibleTrees(x))
+                    foreach (var leftTree in GetPossibleTrees(x))
                     {
-                        foreach(var rightTree in GetPossibleTrees(N - x))
+                        foreach (var rightTree in GetPossibleTrees(N - x))
                         {
                             // Check for overlap in the trees.
                             if (!_checker.ContainsElementInList(rightTree, _checker.GetUsedInts(leftTree)))
@@ -68,7 +65,6 @@ namespace Countdown.NumbersRound
                             }
                         }
                     }
-                    
                 }
             }
 
@@ -77,31 +73,29 @@ namespace Countdown.NumbersRound
         }
 
         // Returns a list of binary expressions using the 2 given expresssions and the types of operation wanted.
-        public static List<System.Linq.Expressions.Expression> GetBinaryExpressions(System.Linq.Expressions.Expression left, System.Linq.Expressions.Expression right, List<ExpressionType> operations)
+        public static List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
         {
-            var output = new List<System.Linq.Expressions.Expression>();
+            var output = new List<Expression>();
 
-            foreach(var operation in operations)
+            foreach (var operation in operations)
             {
-                var newExpr = System.Linq.Expressions.Expression.MakeBinary(operation, left, right);
+                var newExpr = Expression.MakeBinary(operation, left, right);
                 output.Add(newExpr);
             }
 
             return output;
         }
 
-
         // Method to create all possible constant expressions for a provided array of numbers
-        public static List<System.Linq.Expressions.Expression> GetConstantExpressions(List<float> numbers)
+        public static List<Expression> GetConstantExpressions(List<float> numbers)
         {
-            var constantExpressions = new List<System.Linq.Expressions.Expression>();
-            foreach(float num in numbers)
+            var constantExpressions = new List<Expression>();
+            foreach (float num in numbers)
             {
-                constantExpressions.Add(System.Linq.Expressions.Expression.Constant(num));
+                constantExpressions.Add(Expression.Constant(num));
             }
 
             return constantExpressions;
         }
-
     }
 }
