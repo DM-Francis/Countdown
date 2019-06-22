@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Expressions
 {
-    public enum Operation
+    public enum OperationType
     {
         Addition,
         Subtraction,
