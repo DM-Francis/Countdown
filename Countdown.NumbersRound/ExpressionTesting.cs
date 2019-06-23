@@ -1,53 +1,111 @@
-﻿using System;
+﻿using Combinatorics.Collections;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Countdown.NumbersRound
 {
     internal static class ExpressionTesting
     {
-        private static Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
-        private static List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-        private static int _N = 6;
-        private static int _target = 677;
-        private static List<float> _availableNumbers = new List<float> { 75, 6, 1, 8, 9, 7 };
-        private static bool _finished;
-        private static Checker<float> _checker = new Checker<float>();
+        private static readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
+        private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
+        private static int _target;
+        private static int _totalSearched;
+        private static int _validCount;
+
+        private static readonly List<float> _largeNumbers = new List<float> { 25, 50, 75, 100 };
+        private static readonly List<float> _smallNumbers = new List<float> { 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10 };
+
+        private static List<(Expression, float)> _solutions = new List<(Expression, float)>();
 
         public static void TestExpression()
         {
-            var expressions = new List<Expression>();
-            for (int i = 1; i <= 6; i++)
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            var rng = new Random();
+            _target = rng.Next(101, 999);
+
+            int largeAmount = 2;
+            int smallAmount = 6 - largeAmount;
+
+            List<float> availableNums = new List<float>();
+            availableNums.AddRange(_largeNumbers.OrderBy(_ => Guid.NewGuid()).Take(largeAmount));
+            availableNums.AddRange(_smallNumbers.OrderBy(_ => Guid.NewGuid()).Take(smallAmount));
+
+            //availableNums = new List<float> { 100, 50, 6, 10, 25, 5 };
+            //_target = 283;
+
+            int N = availableNums.Count;
+            for (int i = 1; i <= N; i++)
             {
-                _N = i;
-                expressions.AddRange(GetPossibleTrees(_N));
+                TestExpressionsOfLength(i, availableNums);
             }
 
-            //foreach(var exp in expressions)
-            //{
-            //    Console.WriteLine(exp);
-            //}
+            // Dedupe solutions
+            List<string> solutionStrings = _solutions.Select(sol => $"{sol.Item1} = {sol.Item2}").Distinct().ToList();
 
-            Console.WriteLine(expressions.Count);
+            stopWatch.Stop();
+
+            Console.WriteLine($"Total searched = {_totalSearched}");
+            Console.WriteLine($"Valid expressions found = {_validCount}");
+            Console.WriteLine($"{_solutions.Count} solutions found:");
+            foreach (string solution in solutionStrings)
+            {
+                Console.WriteLine(solution);
+            }
+            Console.WriteLine($"Time taken: {stopWatch.Elapsed.TotalSeconds} seconds.");
+        }
+
+        private static void TestExpressionsOfLength(int N, List<float> availableNums)
+        {
+            var variations = new Variations<float>(availableNums, N, GenerateOption.WithoutRepetition);
+
+            foreach (var variation in variations)
+            {
+                foreach (var exp in GetPossibleTrees(N))
+                {
+                    var evaluator = new Evaluator(variation);
+                    var result = evaluator.Evaluate(exp);
+                    _totalSearched++;
+
+                    if (result == _target)
+                    {
+                        var populator = new Populator(variation);
+                        var newExp = populator.Populate(exp);
+                        _solutions.Add((newExp, result));
+                    }
+
+                    if (!float.IsNaN(result))
+                    {
+                        _validCount++;
+                        Console.WriteLine($"Total: {_totalSearched} Valid: {_validCount}");
+                    }
+                }
+            }
+
         }
 
         // Method to create possible expression trees with N leaves.
         public static List<Expression> GetPossibleTrees(int N)
         {
-            // Assume the same binary operation: addition
-            // Assume only one possible number: 1
-            var resultList = new List<Expression>();
+            // Don't put any numbers in these.  Only create the bracket/operation structure.
 
             // Check cache first
             if (_expressionCache.ContainsKey(N))
             {
                 _expressionCache.TryGetValue(N, out List<Expression> cacheResult);
+
                 return cacheResult;
             }
 
+            var resultList = new List<Expression>();
+
             if (N == 1)
             {
-                resultList.AddRange(GetConstantExpressions(_availableNumbers));
+                resultList.Add(Expression.Constant((float)1));
             }
             else
             {
@@ -57,18 +115,15 @@ namespace Countdown.NumbersRound
                     {
                         foreach (var rightTree in GetPossibleTrees(N - x))
                         {
-                            // Check for overlap in the trees.
-                            if (!_checker.ContainsElementInList(rightTree, _checker.GetUsedInts(leftTree)))
-                            {
-                                var possibleExpressions = GetBinaryExpressions(leftTree, rightTree, _operations);
-                                resultList.AddRange(possibleExpressions);
-                            }
+                            var possibleExpressions = GetBinaryExpressions(leftTree, rightTree, _operations);
+                            resultList.AddRange(possibleExpressions);
                         }
                     }
                 }
             }
 
             _expressionCache.Add(N, resultList);
+
             return resultList;
         }
 
@@ -84,18 +139,6 @@ namespace Countdown.NumbersRound
             }
 
             return output;
-        }
-
-        // Method to create all possible constant expressions for a provided array of numbers
-        public static List<Expression> GetConstantExpressions(List<float> numbers)
-        {
-            var constantExpressions = new List<Expression>();
-            foreach (float num in numbers)
-            {
-                constantExpressions.Add(Expression.Constant(num));
-            }
-
-            return constantExpressions;
         }
     }
 }
