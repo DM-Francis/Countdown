@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using SF = MathNet.Numerics.SpecialFunctions;
 
 namespace Countdown.NumbersRound
 {
@@ -28,15 +29,19 @@ namespace Countdown.NumbersRound
             var rng = new Random();
             _target = rng.Next(101, 999);
 
-            int largeAmount = 2;
+            _target = SmallPrimeUtility.PrimeTable.Where(p => p > 100 && p < 1000).OrderBy(_ => Guid.NewGuid()).First();
+
+            int largeAmount = 1;
             int smallAmount = 6 - largeAmount;
 
             List<float> availableNums = new List<float>();
             availableNums.AddRange(_largeNumbers.OrderBy(_ => Guid.NewGuid()).Take(largeAmount));
             availableNums.AddRange(_smallNumbers.OrderBy(_ => Guid.NewGuid()).Take(smallAmount));
 
-            //availableNums = new List<float> { 100, 50, 6, 10, 25, 5 };
-            //_target = 283;
+            availableNums = new List<float> { 50, 75, 100, 25, 1, 8 };
+            _target = 841;
+
+            Console.WriteLine($"Total combinations to check: {GetTotalCombinations(availableNums)}");
 
             int N = availableNums.Count;
             for (int i = 1; i <= N; i++)
@@ -49,9 +54,12 @@ namespace Countdown.NumbersRound
 
             stopWatch.Stop();
 
+            Console.WriteLine($"Available numbers = {string.Join(',', availableNums)}");
+            Console.WriteLine($"Target = {_target}");
+
             Console.WriteLine($"Total searched = {_totalSearched}");
             Console.WriteLine($"Valid expressions found = {_validCount}");
-            Console.WriteLine($"{_solutions.Count} solutions found:");
+            Console.WriteLine($"{solutionStrings.Count} solutions found:");
             foreach (string solution in solutionStrings)
             {
                 Console.WriteLine(solution);
@@ -81,11 +89,14 @@ namespace Countdown.NumbersRound
                     if (!float.IsNaN(result))
                     {
                         _validCount++;
-                        Console.WriteLine($"Total: {_totalSearched} Valid: {_validCount}");
+
+                        if (_validCount % 1000 == 0)
+                        {
+                            Console.WriteLine($"Total: {_totalSearched} Valid: {_validCount}");
+                        }
                     }
                 }
             }
-
         }
 
         // Method to create possible expression trees with N leaves.
@@ -139,6 +150,19 @@ namespace Countdown.NumbersRound
             }
 
             return output;
+        }
+
+        private static int GetTotalCombinations(List<float> availableNumbers)
+        {
+            int N = availableNumbers.Count;
+            double total = 0;
+
+            for (int n = 1; n <= N; n++)
+            {
+                total += Math.Pow(4, n - 1) * (SF.Factorial(N) / (n * SF.Factorial(N - n))) * SF.Binomial(2 * n - 2, n - 1);
+            }
+
+            return (int)total;
         }
     }
 }
