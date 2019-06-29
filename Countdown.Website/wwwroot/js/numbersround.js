@@ -21,7 +21,9 @@ function onClickGenerateNumbers() {
     }
 }
 function shuffle(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
+    var currentIndex = array.length;
+    var temporaryValue;
+    var randomIndex;
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
         // Pick a remaining element...

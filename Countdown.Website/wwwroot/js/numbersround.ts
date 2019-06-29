@@ -30,8 +30,10 @@ function onClickGenerateNumbers() {
     }
 }
 
-function shuffle(array: any[]) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
+function shuffle<T>(array: T[]) {
+    var currentIndex: number = array.length;
+    var temporaryValue: T;
+    var randomIndex: number;
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
