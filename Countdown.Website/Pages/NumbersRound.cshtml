@@ -1,0 +1,20 @@
+﻿@page
+@model NumbersRoundModel
+@{
+    ViewData["Title"] = "Numbers Round";
+}
+<h1 class="row justify-content-center display-4">Numbers Round</h1>
+<h2 class="row justify-content-center" id="target">@Model.Target</h2>
+<div class="row justify-content-center p-1">
+    <button type="button" class="btn btn-primary" onclick="onClickNewTarget()">New Target</button>
+</div>
+<div class="row justify-content-center">
+    @for (int i = 1; i <= 6; i++)
+    {
+        <div class="col-sm-2 p-1 px-3 w-75">
+            <input type="text" class="number-input form-control form-inline" id="number-@i" />
+        </div>
+    }
+</div>
+
+<script src="~/js/numbersround.js" asp-append-version="true"></script>

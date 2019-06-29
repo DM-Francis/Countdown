@@ -38,8 +38,8 @@ namespace Countdown.NumbersRound
             availableNums.AddRange(_largeNumbers.OrderBy(_ => Guid.NewGuid()).Take(largeAmount));
             availableNums.AddRange(_smallNumbers.OrderBy(_ => Guid.NewGuid()).Take(smallAmount));
 
-            availableNums = new List<float> { 50, 75, 100, 25, 1, 8 };
-            _target = 841;
+            availableNums = new List<float> { 50, 75, 100, 25, 1, 2 };
+            _target = 940;
 
             Console.WriteLine($"Total combinations to check: {GetTotalCombinations(availableNums)}");
 
