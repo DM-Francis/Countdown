@@ -61,7 +61,7 @@ body {
     --countdown-blue: #3e79cb;
 }
 
-.number-input {
+.num-input {
     /*font-family: serif;*/
     font-size: 200%;
     text-align: center;
@@ -70,6 +70,13 @@ body {
     border-width: thick;
 }
 
-/*.new-target {
-    background-color: var(--countdown-blue);
-}*/
+input.num-input::-webkit-outer-spin-button,
+input.num-input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number].num-input {
+    -moz-appearance: textfield; /* Firefox */
+}
