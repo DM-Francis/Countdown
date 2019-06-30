@@ -15,3 +15,11 @@ variables:
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Visual Studio Enterprise – MPN(6f59c33f-8a25-4c04-8c83-c593ca39e433)'
+    appType: 'webApp'
+    WebAppName: 'CountdownDF'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
