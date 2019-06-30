@@ -1,73 +1,43 @@
 ﻿using Combinatorics.Collections;
+using SF = MathNet.Numerics.SpecialFunctions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
-using SF = MathNet.Numerics.SpecialFunctions;
+using System.Text;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Countdown.NumbersRound
 {
-    internal static class ExpressionTesting
+    public class Solver : ISolver
     {
-        private static readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-        private static int _target;
-        private static int _totalSearched;
-        private static int _validCount;
 
-        private static readonly List<float> _largeNumbers = new List<float> { 25, 50, 75, 100 };
-        private static readonly List<float> _smallNumbers = new List<float> { 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10 };
+        private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
+        private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
+        private int _target;
+        private int _totalSearched;
+        private int _validCount;
 
-        private static List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
-
-        public static void TestExpression()
+        public List<string> GetPossibleSolutions(int target, List<int> availableNums)
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
+            _target = target;
+            _totalSearched = 0;
+            _validCount = 0;
 
-            var rng = new Random();
-            _target = rng.Next(101, 999);
-
-            _target = SmallPrimeUtility.PrimeTable.Where(p => p > 100 && p < 1000).OrderBy(_ => Guid.NewGuid()).First();
-
-            int largeAmount = 1;
-            int smallAmount = 6 - largeAmount;
-
-            List<float> availableNums = new List<float>();
-            availableNums.AddRange(_largeNumbers.OrderBy(_ => Guid.NewGuid()).Take(largeAmount));
-            availableNums.AddRange(_smallNumbers.OrderBy(_ => Guid.NewGuid()).Take(smallAmount));
-
-            availableNums = new List<float> { 2, 4, 2, 6, 10, 7 };
-            _target = 440;
-
-            Console.WriteLine($"Total combinations to check: {GetTotalCombinations(availableNums)}");
+            List<float> availableNumsFloat = availableNums.Select(i => (float)i).ToList();
 
             int N = availableNums.Count;
             for (int i = 1; i <= N; i++)
             {
-                TestExpressionsOfLength(i, availableNums);
+                TestExpressionsOfLength(i, availableNumsFloat);
             }
 
             // Dedupe solutions
-            List<string> solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
-
-            stopWatch.Stop();
-
-            Console.WriteLine($"Available numbers = {string.Join(',', availableNums)}");
-            Console.WriteLine($"Target = {_target}");
-
-            Console.WriteLine($"Total searched = {_totalSearched}");
-            Console.WriteLine($"Valid expressions found = {_validCount}");
-            Console.WriteLine($"{solutionStrings.Count} solutions found:");
-            foreach (string solution in solutionStrings)
-            {
-                Console.WriteLine(solution);
-            }
-            Console.WriteLine($"Time taken: {stopWatch.Elapsed.TotalSeconds} seconds.");
+            return _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
         }
 
-        private static void TestExpressionsOfLength(int N, List<float> availableNums)
+        private void TestExpressionsOfLength(int N, List<float> availableNums)
         {
             var variations = new Variations<float>(availableNums, N, GenerateOption.WithoutRepetition);
 
@@ -89,18 +59,13 @@ namespace Countdown.NumbersRound
                     if (!float.IsNaN(result))
                     {
                         _validCount++;
-
-                        if (_validCount % 1000 == 0)
-                        {
-                            Console.WriteLine($"Total: {_totalSearched} Valid: {_validCount}");
-                        }
                     }
                 }
             }
         }
 
         // Method to create possible expression trees with N leaves.
-        public static List<Expression> GetPossibleTrees(int N)
+        private List<Expression> GetPossibleTrees(int N)
         {
             // Don't put any numbers in these.  Only create the bracket/operation structure.
 
@@ -139,7 +104,7 @@ namespace Countdown.NumbersRound
         }
 
         // Returns a list of binary expressions using the 2 given expresssions and the types of operation wanted.
-        public static List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
+        private List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
         {
             var output = new List<Expression>();
 
@@ -152,7 +117,7 @@ namespace Countdown.NumbersRound
             return output;
         }
 
-        private static int GetTotalCombinations(List<float> availableNumbers)
+        private int GetTotalCombinations(List<float> availableNumbers)
         {
             int N = availableNumbers.Count;
             double total = 0;

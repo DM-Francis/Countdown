@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-//using System.Linq;
 using System.Threading.Tasks;
+using Countdown.NumbersRound;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -31,6 +31,8 @@ namespace Countdown.Website
                         .AddPageRoute("/NumbersRound", "/")
                         .AddPageRoute("/NumbersRound", "/Index")
                 );
+
+            services.AddTransient<ISolver, Solver>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

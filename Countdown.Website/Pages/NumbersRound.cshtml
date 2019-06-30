@@ -35,6 +35,14 @@
     <div class="row justify-content-center p-1">
         <input type="submit" class="btn btn-primary" value="Solve" />
     </div>
+    <h3>Solutions</h3>
+    @if (Model.Solutions != null)
+    {
+        foreach (string sol in Model.Solutions)
+        {
+            <p>@sol</p>
+        }
+    }
 </form>
 @using Newtonsoft.Json
 <span id="num-data" data-large-nums="@JsonConvert.SerializeObject(Model.AvailableLarge)" data-small-nums="@JsonConvert.SerializeObject(Model.AvailableSmall)" hidden></span>
