@@ -51,10 +51,6 @@ function shuffle(array) {
     return array;
 }
 
-function onClickSolve() {
-    document.getElementById("spinner-solving").hidden = false;
-}
-
 window.addEventListener("load", overrideFormSubmit);
 
 function overrideFormSubmit() {
@@ -83,10 +79,13 @@ function sendNumberData(form) {
 
 function sendNumberSuccess(data, textStatus) {
     console.log(data);
-
     document.getElementById("solutions").hidden = false;
 
     var solutionList = document.getElementById("solution-list");
+    while (solutionList.hasChildNodes()) {
+        solutionList.removeChild(solutionList.firstChild)
+    }
+
     var sols = JSON.parse(data);
 
     if (sols.length == 0) {
