@@ -1,5 +1,6 @@
 ﻿using Combinatorics.Collections;
 using SF = MathNet.Numerics.SpecialFunctions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -13,11 +14,18 @@ namespace Countdown.NumbersRound
     {
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
 
+        private readonly ILogger _logger;
+
         private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
         private int _target;
         private int _totalSearched;
         private int _validCount;
+
+        public Solver(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         public List<string> GetPossibleSolutions(int target, List<int> availableNums)
         {
@@ -34,7 +42,18 @@ namespace Countdown.NumbersRound
             }
 
             // Dedupe solutions
-            return _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
+            var solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
+
+
+            _logger.LogInformation("Available numbers = {availableNums}", string.Join(',', availableNums));
+            _logger.LogInformation("Target = {target}", _target);
+
+            _logger.LogInformation("Total searched = {totalSearched}", _totalSearched);
+            _logger.LogInformation("Valid expressions found = {validCount}", _validCount);
+            _logger.LogInformation("{solutionCount} solutions found", solutionStrings.Count);
+            _logger.LogInformation("{solutions}", solutionStrings);
+
+            return solutionStrings;
         }
 
         private void TestExpressionsOfLength(int N, List<float> availableNums)
