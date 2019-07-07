@@ -3,6 +3,7 @@ using SF = MathNet.Numerics.SpecialFunctions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,13 +23,16 @@ namespace Countdown.NumbersRound
         private int _totalSearched;
         private int _validCount;
 
-        public Solver(ILogger logger)
+        public Solver(ILogger<Solver> logger)
         {
             _logger = logger;
         }
 
         public List<string> GetPossibleSolutions(int target, List<int> availableNums)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             _target = target;
             _totalSearched = 0;
             _validCount = 0;
@@ -43,7 +47,7 @@ namespace Countdown.NumbersRound
 
             // Dedupe solutions
             var solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
-
+            stopWatch.Stop();
 
             _logger.LogInformation("Available numbers = {availableNums}", string.Join(',', availableNums));
             _logger.LogInformation("Target = {target}", _target);
@@ -52,6 +56,7 @@ namespace Countdown.NumbersRound
             _logger.LogInformation("Valid expressions found = {validCount}", _validCount);
             _logger.LogInformation("{solutionCount} solutions found", solutionStrings.Count);
             _logger.LogInformation("{solutions}", solutionStrings);
+            _logger.LogInformation("Time taken: {timeTaken}", stopWatch.Elapsed.Duration().ToString());
 
             return solutionStrings;
         }
