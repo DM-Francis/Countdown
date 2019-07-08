@@ -1,6 +1,7 @@
 ﻿using Combinatorics.Collections;
 using SF = MathNet.Numerics.SpecialFunctions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,9 +24,11 @@ namespace Countdown.NumbersRound
         private int _totalSearched;
         private int _validCount;
 
+        public Solver() : this(NullLogger<Solver>.Instance) { }
+
         public Solver(ILogger<Solver> logger)
         {
-            _logger = logger;
+            _logger = logger ?? NullLogger<Solver>.Instance;
         }
 
         public List<string> GetPossibleSolutions(int target, List<int> availableNums)
