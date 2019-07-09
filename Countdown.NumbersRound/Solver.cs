@@ -19,6 +19,8 @@ namespace Countdown.NumbersRound
 
         private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
+        private int _currentClosestDistance;
+
         private int _target;
         private int _totalSearched;
         private int _validCount;
@@ -40,6 +42,7 @@ namespace Countdown.NumbersRound
             List<float> availableNumsFloat = availableNums.Select(i => (float)i).ToList();
 
             int N = availableNums.Count;
+            _currentClosestDistance = target;
             for (int i = 1; i <= N; i++)
             {
                 TestExpressionsOfLength(i, availableNumsFloat);
@@ -73,11 +76,16 @@ namespace Countdown.NumbersRound
                     var result = evaluator.Evaluate(exp);
                     _totalSearched++;
 
-                    if (result == _target)
+                    float diff = Math.Abs(_target - result);
+                    if (diff == _currentClosestDistance)
                     {
-                        var populator = new Populator(variation);
-                        var newExp = populator.Populate(exp);
-                        _solutions.Add((newExp, result));
+                        AddResultToSolutions(variation, exp, result);
+                    }
+                    else if (diff < _currentClosestDistance)
+                    {
+                        _solutions.Clear();
+                        _currentClosestDistance = (int)diff;
+                        AddResultToSolutions(variation, exp, result);
                     }
 
                     if (!float.IsNaN(result))
@@ -86,6 +94,13 @@ namespace Countdown.NumbersRound
                     }
                 }
             }
+        }
+
+        private void AddResultToSolutions(IList<float> variation, Expression exp, float result)
+        {
+            var populator = new Populator(variation);
+            var newExp = populator.Populate(exp);
+            _solutions.Add((newExp, result));
         }
 
         // Method to create possible expression trees with N leaves.
