@@ -19,7 +19,7 @@ namespace Countdown.NumbersRound
 
         private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
-        private int _currentClosestDistance;
+        private int _currentClosestDiff;
 
         private int _target;
         private int _totalSearched;
@@ -30,7 +30,7 @@ namespace Countdown.NumbersRound
             _logger = logger;
         }
 
-        public List<string> GetPossibleSolutions(int target, List<int> availableNums)
+        public SolveResult GetPossibleSolutions(int target, List<int> availableNums)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -42,7 +42,7 @@ namespace Countdown.NumbersRound
             List<float> availableNumsFloat = availableNums.Select(i => (float)i).ToList();
 
             int N = availableNums.Count;
-            _currentClosestDistance = target;
+            _currentClosestDiff = target;
             for (int i = 1; i <= N; i++)
             {
                 TestExpressionsOfLength(i, availableNumsFloat);
@@ -61,7 +61,7 @@ namespace Countdown.NumbersRound
             _logger.LogInformation("{solutions}", solutionStrings);
             _logger.LogInformation("Time taken: {timeTaken}", stopWatch.Elapsed.Duration().ToString());
 
-            return solutionStrings;
+            return new SolveResult { ClosestDiff = _currentClosestDiff, Solutions = solutionStrings };
         }
 
         private void TestExpressionsOfLength(int N, List<float> availableNums)
@@ -77,14 +77,14 @@ namespace Countdown.NumbersRound
                     _totalSearched++;
 
                     float diff = Math.Abs(_target - result);
-                    if (diff == _currentClosestDistance)
+                    if (diff == _currentClosestDiff)
                     {
                         AddResultToSolutions(variation, exp, result);
                     }
-                    else if (diff < _currentClosestDistance)
+                    else if (diff < _currentClosestDiff)
                     {
                         _solutions.Clear();
-                        _currentClosestDistance = (int)diff;
+                        _currentClosestDiff = (int)diff;
                         AddResultToSolutions(variation, exp, result);
                     }
 
