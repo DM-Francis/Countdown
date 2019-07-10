@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.ExpressionBased
 {
-    public class Solver : ISolver
+    public class ExpressionSolver : ISolver
     {
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
 
@@ -25,7 +25,7 @@ namespace Countdown.NumbersRound
         private int _totalSearched;
         private int _validCount;
 
-        public Solver(ILogger<Solver> logger)
+        public ExpressionSolver(ILogger<ExpressionSolver> logger)
         {
             _logger = logger;
         }
@@ -39,7 +39,7 @@ namespace Countdown.NumbersRound
             _totalSearched = 0;
             _validCount = 0;
 
-            List<float> availableNumsFloat = availableNums.Select(i => (float)i).ToList();
+            var availableNumsFloat = availableNums.Select(i => (float)i).ToList();
 
             int N = availableNums.Count;
             _currentClosestDiff = target;
