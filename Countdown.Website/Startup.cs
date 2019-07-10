@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Countdown.NumbersRound;
+using Countdown.NumbersRound.ExpressionBased;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ namespace Countdown.Website
                     options.SuppressInferBindingSourcesForParameters = true
                 );
 
-            services.AddTransient<ISolver, Solver>();
+            services.AddTransient<ISolver, ExpressionSolver>();
 
             services.Configure<CookiePolicyOptions>(options =>
             {
