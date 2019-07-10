@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Countdown.NumbersRound", "Countdown.NumbersRound\Countdown.NumbersRound.csproj", "{6F35E4F3-A074-42D0-9947-856A6FD71FCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countdown.Website", "Countdown.Website\Countdown.Website.csproj", "{796DAD39-03E2-4F5E-8066-DF402EC6D725}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Countdown.Website", "Countdown.Website\Countdown.Website.csproj", "{796DAD39-03E2-4F5E-8066-DF402EC6D725}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countdown.Test", "Countdown.Test\Countdown.Test.csproj", "{2133117B-9986-4185-8ECC-2920053465E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{796DAD39-03E2-4F5E-8066-DF402EC6D725}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{796DAD39-03E2-4F5E-8066-DF402EC6D725}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{796DAD39-03E2-4F5E-8066-DF402EC6D725}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2133117B-9986-4185-8ECC-2920053465E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2133117B-9986-4185-8ECC-2920053465E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2133117B-9986-4185-8ECC-2920053465E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2133117B-9986-4185-8ECC-2920053465E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
