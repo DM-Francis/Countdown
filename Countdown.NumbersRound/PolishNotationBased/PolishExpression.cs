@@ -10,6 +10,8 @@ namespace Countdown.NumbersRound.PolishNotationBased
         private List<string> _expression;
 
         private Stack<string> _stack;
+        private Stack<string> _operations;
+
         private string _lastPushedOperation = "";
         private int _numsSinceOperation = 0;
 
@@ -22,14 +24,14 @@ namespace Countdown.NumbersRound.PolishNotationBased
         public float Evaluate()
         {
             _stack = new Stack<string>();
-            _lastPushedOperation = "";
+            //_lastPushedOperation = "";
 
-            foreach(string s in _expression)
+            foreach (string s in _expression)
             {
                 _stack.Push(s);
                 if (IsOperation(s))
                 {
-                    _lastPushedOperation = s;
+                    _operations.Push(s);
                     _numsSinceOperation = 0;
                 }
                 else if (IsNumber(s))
@@ -90,14 +92,7 @@ namespace Countdown.NumbersRound.PolishNotationBased
         private bool IsValid()
         {
             string first = _expression[0];
-            if (first == "+" ||first == "-" || first == "/" || first == "*")
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return first == "+" ||first == "-" || first == "/" || first == "*";
         }
     }
 }
