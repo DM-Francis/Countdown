@@ -1,4 +1,4 @@
-﻿using Countdown.NumbersRound.PolishNotationBased;
+﻿using Countdown.NumbersRound.PrefixNotationBased;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Countdown.Test.NumbersRound
 {
-    public class StringSolverTests
+    public class PrefixSolverTests
     {
         [Fact]
         public void GetsSolutionForTrivialExample()
@@ -16,7 +16,7 @@ namespace Countdown.Test.NumbersRound
             var availableNums = new List<int> { 1, 1 };
 
             // Act
-            var solver = new PolishSolver();
+            var solver = new PrefixSolver();
             var result = solver.GetPossibleSolutions(target, availableNums);
 
             // Assert
