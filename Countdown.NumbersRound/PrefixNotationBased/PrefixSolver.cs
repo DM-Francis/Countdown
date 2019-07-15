@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Combinatorics.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,27 +12,49 @@ namespace Countdown.NumbersRound.PrefixNotationBased
 
         public SolveResult GetPossibleSolutions(int target, List<int> availableNums)
         {
-            var expList = GenerateExpressions(5, availableNums);
-            var solutions = new List<string>();
-            
-            foreach(var exp in expList)
-            {
-                solutions.Add($"{string.Join(',', exp.RawExpression)} = {exp.Evaluate()}");
-            }
+            var expSolutions = GenerateAndTestExpressions(availableNums, exp => exp.Evaluate() == target);
 
-            return new SolveResult { ClosestDiff = 0, Solutions = solutions };
+            var stringSolutions = expSolutions.Select(exp => $"{string.Join(',', exp.RawExpression)} = {exp.Evaluate()}").ToList();
+
+            return new SolveResult { ClosestDiff = 0, Solutions = stringSolutions };
         }
 
-        private List<PrefixExpression> GenerateExpressions(int N, List<int> availableNums)
+        private List<PrefixExpression> GenerateAndTestExpressions(List<int> availableNums, Func<PrefixExpression,bool> expressionFilter)
         {
             var expressionList = new List<PrefixExpression>();
 
-            for (int i = 1; i <= N; i++)
+            for (int n = 1; n <= availableNums.Count; n++)
             {
-                expressionList.AddRange(GetPossibleTrees(i));
+                var variations = new Variations<int>(availableNums, n, GenerateOption.WithoutRepetition);
+                foreach (var variation in variations)
+                {
+                    foreach (var baseExp in GetPossibleTrees(n))
+                    {
+                        var availableNumStack = new Stack<int>(variation);
+                        var newExpression = baseExp.RawExpression.ToList();
+                        for (int i = 0; i < newExpression.Count; i++)
+                        {
+                            if (IsNumber(newExpression[i]))
+                            {
+                                newExpression[i] = availableNumStack.Pop().ToString();
+                            }
+                        }
+
+                        var pfExp = new PrefixExpression(newExpression);
+                        if (expressionFilter(pfExp))
+                        {
+                            expressionList.Add(pfExp);
+                        }
+                    }
+                }
             }
 
             return expressionList;
+        }
+
+        private static bool IsNumber(string s)
+        {
+            return s == "1";
         }
 
         private IEnumerable<PrefixExpression> GetPossibleTrees(int N)
@@ -39,7 +62,6 @@ namespace Countdown.NumbersRound.PrefixNotationBased
             if (_expressionCache.ContainsKey(N))
             {
                 _expressionCache.TryGetValue(N, out List<PrefixExpression> cacheResult);
-
                 return cacheResult;
             }
 
@@ -48,11 +70,6 @@ namespace Countdown.NumbersRound.PrefixNotationBased
             if (N == 1)
             {
                 resultList.Add(new PrefixExpression("1"));
-                resultList.Add(new PrefixExpression("2"));
-                resultList.Add(new PrefixExpression("3"));
-                resultList.Add(new PrefixExpression("4"));
-                resultList.Add(new PrefixExpression("5"));
-                resultList.Add(new PrefixExpression("6"));
             }
             else
             {

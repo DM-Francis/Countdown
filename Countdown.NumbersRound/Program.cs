@@ -9,13 +9,16 @@ namespace Countdown.NumbersRound
     {
         public static void Main()
         {
-            // Arrange
-            int target = 2;
-            var availableNums = new List<int> { 1, 1 };
+            int target = 150;
+            var availableNums = new List<int> { 1,2,3,4,5,6 };
 
-            // Act
             var solver = new PrefixSolver();
             var result = solver.GetPossibleSolutions(target, availableNums);
+
+            foreach(var sol in result.Solutions)
+            {
+                Console.WriteLine(sol);
+            }
         }
     }
 }

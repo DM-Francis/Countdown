@@ -28,6 +28,49 @@ namespace Countdown.NumbersRound.PrefixNotationBased
 
         public float Evaluate()
         {
+            var tokenStack = new Stack<string>();
+            foreach(var token in RawExpression.Reverse())
+            {
+                float num;
+                if (float.TryParse(token, out num))
+                {
+                    tokenStack.Push(num.ToString());
+                }
+                else
+                {
+                    float num1 = float.Parse(tokenStack.Pop());
+                    float num2 = float.Parse(tokenStack.Pop());
+
+                    switch (token)
+                    {
+                        case "+":
+                            tokenStack.Push((num1 + num2).ToString());
+                            break;
+                        case "-":
+                            tokenStack.Push((num1 - num2).ToString());
+                            break;
+                        case "/":
+                            tokenStack.Push((num1 / num2).ToString());
+                            break;
+                        case "*":
+                            tokenStack.Push((num1 * num2).ToString());
+                            break;
+                        default:
+                            throw new InvalidOperationException($"Expected a string representing an operation, but instead got {token}.");
+                    }
+                }
+            }
+
+            if (tokenStack.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected only 1 remaining number in the stack, but there were {tokenStack.Count}");
+            }
+
+            return float.Parse(tokenStack.Pop());
+        }
+
+        public float EvaluateOld()
+        {
             _stack = new Stack<string>();
 
             foreach (string s in RawExpression)
@@ -52,12 +95,6 @@ namespace Countdown.NumbersRound.PrefixNotationBased
                     throw new InvalidOperationException($"Expected either a number or an operation, got {s}");
                 }
             }
-
-            //while (_operationsInStack > 0)
-            //{
-            //    EvaluateTopOperation();
-            //    RefreshNumsSinceOperation();
-            //}
 
             if (_stack.Count != 1)
             {
