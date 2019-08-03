@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Countdown.NumbersRound;
+using Countdown.Website.DataModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
@@ -36,6 +38,7 @@ namespace Countdown.Website
                     options.SuppressInferBindingSourcesForParameters = true
                 );
 
+            services.AddDbContext<CountdownContext>(options => options.UseSqlite(Configuration.GetConnectionString("Default")));
             services.AddTransient<ISolver, Solver>();
 
             services.Configure<CookiePolicyOptions>(options =>
