@@ -51,10 +51,6 @@ function shuffle(array) {
     return array;
 }
 
-function onClickSolve() {
-    document.getElementById("spinner-solving").hidden = false;
-}
-
 window.addEventListener("load", overrideFormSubmit);
 
 function overrideFormSubmit() {
@@ -83,22 +79,23 @@ function sendNumberData(form) {
 
 function sendNumberSuccess(data, textStatus) {
     console.log(data);
-
     document.getElementById("solutions").hidden = false;
 
     var solutionList = document.getElementById("solution-list");
-    var sols = JSON.parse(data);
-
-    if (sols.length == 0) {
-        sols = { 0: "No solutions found!" };
+    while (solutionList.hasChildNodes()) {
+        solutionList.removeChild(solutionList.firstChild)
     }
 
-    for (const key in sols) {
-        let solution = sols[key]
-        var newP = document.createElement("p");
-        var text = document.createTextNode(solution);
-        newP.appendChild(text);
-        solutionList.appendChild(newP);
+    var solData = JSON.parse(data);
+
+    if (solData["closestDiff"] != 0) {
+        appendPElementToSolutions(solutionList, "No solutions found!");
+        appendPElementToSolutions(solutionList, `Found results ${solData["closestDiff"]} away.`);
+    }
+
+    for (const key in solData["solutions"]) {
+        let solution = solData["solutions"][key];
+        appendPElementToSolutions(solutionList, solution);
     }
 
     document.getElementById("spinner-solving").hidden = true;
@@ -106,4 +103,11 @@ function sendNumberSuccess(data, textStatus) {
     for (const key in btns) {
         btns[key].disabled = false;
     }
+}
+
+function appendPElementToSolutions(solutionList, text) {
+    var newP = document.createElement("p");
+    var textNode = document.createTextNode(text);
+    newP.appendChild(textNode);
+    solutionList.appendChild(newP);
 }

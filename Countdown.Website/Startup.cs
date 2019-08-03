@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Countdown.NumbersRound;
+using Countdown.NumbersRound.ExpressionBased;
 using Countdown.Website.DataModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,7 +40,7 @@ namespace Countdown.Website
                 );
 
             services.AddDbContext<CountdownContext>(options => options.UseSqlite(Configuration.GetConnectionString("Default")));
-            services.AddTransient<ISolver, Solver>();
+            services.AddTransient<ISolver, ExpressionSolver>();
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -62,7 +63,6 @@ namespace Countdown.Website
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 

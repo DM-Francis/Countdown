@@ -24,7 +24,7 @@ namespace Countdown.Website.Controllers
 
         [HttpPost]
         [Route("solve", Name = "numbers-solve")]
-        public async Task<List<string>> SolveAsync(int target, List<int> chosenNums)
+        public async Task<SolveResult> SolveAsync(int target, List<int> chosenNums)
         {
             var solveTask = Task.Run(() => _solver.GetPossibleSolutions(target, chosenNums));
             var problem = new Problem { Target = target, AvailableNumbers = chosenNums };

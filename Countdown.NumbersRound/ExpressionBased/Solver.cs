@@ -1,73 +1,70 @@
 ﻿using Combinatorics.Collections;
+using SF = MathNet.Numerics.SpecialFunctions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
-using SF = MathNet.Numerics.SpecialFunctions;
+using System.Text;
+using System.Threading.Tasks;
+using System.Linq;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.ExpressionBased
 {
-    internal static class ExpressionTesting
+    public class ExpressionSolver : ISolver
     {
-        private static readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-        private static int _target;
-        private static int _totalSearched;
-        private static int _validCount;
 
-        private static readonly List<float> _largeNumbers = new List<float> { 25, 50, 75, 100 };
-        private static readonly List<float> _smallNumbers = new List<float> { 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10 };
+        private readonly ILogger _logger;
 
-        private static List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
+        private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
+        private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
+        private int _currentClosestDiff;
 
-        public static void TestExpression()
+        private int _target;
+        private int _totalSearched;
+        private int _validCount;
+
+        public ExpressionSolver(ILogger<ExpressionSolver> logger)
+        {
+            _logger = logger;
+        }
+
+        public SolveResult GetPossibleSolutions(int target, List<int> availableNums)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            var rng = new Random();
-            _target = rng.Next(101, 999);
+            _target = target;
+            _totalSearched = 0;
+            _validCount = 0;
 
-            _target = SmallPrimeUtility.PrimeTable.Where(p => p > 100 && p < 1000).OrderBy(_ => Guid.NewGuid()).First();
-
-            int largeAmount = 1;
-            int smallAmount = 6 - largeAmount;
-
-            List<float> availableNums = new List<float>();
-            availableNums.AddRange(_largeNumbers.OrderBy(_ => Guid.NewGuid()).Take(largeAmount));
-            availableNums.AddRange(_smallNumbers.OrderBy(_ => Guid.NewGuid()).Take(smallAmount));
-
-            availableNums = new List<float> { 2, 4, 2, 6, 10, 7 };
-            _target = 440;
-
-            Console.WriteLine($"Total combinations to check: {GetTotalCombinations(availableNums)}");
+            var availableNumsFloat = availableNums.Select(i => (float)i).ToList();
 
             int N = availableNums.Count;
+            _currentClosestDiff = target;
             for (int i = 1; i <= N; i++)
             {
-                TestExpressionsOfLength(i, availableNums);
+                TestExpressionsOfLength(i, availableNumsFloat);
             }
 
             // Dedupe solutions
-            List<string> solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
-
+            var solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
             stopWatch.Stop();
 
-            Console.WriteLine($"Available numbers = {string.Join(',', availableNums)}");
-            Console.WriteLine($"Target = {_target}");
+            _logger.LogInformation("Available numbers = {availableNums}", string.Join(',', availableNums));
+            _logger.LogInformation("Target = {target}", _target);
 
-            Console.WriteLine($"Total searched = {_totalSearched}");
-            Console.WriteLine($"Valid expressions found = {_validCount}");
-            Console.WriteLine($"{solutionStrings.Count} solutions found:");
-            foreach (string solution in solutionStrings)
-            {
-                Console.WriteLine(solution);
-            }
-            Console.WriteLine($"Time taken: {stopWatch.Elapsed.TotalSeconds} seconds.");
+            _logger.LogInformation("Total searched = {totalSearched}", _totalSearched);
+            _logger.LogInformation("Valid expressions found = {validCount}", _validCount);
+            _logger.LogInformation("{solutionCount} solutions found", solutionStrings.Count);
+            _logger.LogInformation("{solutions}", solutionStrings);
+            _logger.LogInformation("Time taken: {timeTaken}", stopWatch.Elapsed.Duration().ToString());
+
+            return new SolveResult { ClosestDiff = _currentClosestDiff, Solutions = solutionStrings };
         }
 
-        private static void TestExpressionsOfLength(int N, List<float> availableNums)
+        private void TestExpressionsOfLength(int N, List<float> availableNums)
         {
             var variations = new Variations<float>(availableNums, N, GenerateOption.WithoutRepetition);
 
@@ -79,28 +76,35 @@ namespace Countdown.NumbersRound
                     var result = evaluator.Evaluate(exp);
                     _totalSearched++;
 
-                    if (result == _target)
+                    float diff = Math.Abs(_target - result);
+                    if (diff == _currentClosestDiff)
                     {
-                        var populator = new Populator(variation);
-                        var newExp = populator.Populate(exp);
-                        _solutions.Add((newExp, result));
+                        AddResultToSolutions(variation, exp, result);
+                    }
+                    else if (diff < _currentClosestDiff)
+                    {
+                        _solutions.Clear();
+                        _currentClosestDiff = (int)diff;
+                        AddResultToSolutions(variation, exp, result);
                     }
 
                     if (!float.IsNaN(result))
                     {
                         _validCount++;
-
-                        if (_validCount % 1000 == 0)
-                        {
-                            Console.WriteLine($"Total: {_totalSearched} Valid: {_validCount}");
-                        }
                     }
                 }
             }
         }
 
+        private void AddResultToSolutions(IList<float> variation, Expression exp, float result)
+        {
+            var populator = new Populator(variation);
+            var newExp = populator.Populate(exp);
+            _solutions.Add((newExp, result));
+        }
+
         // Method to create possible expression trees with N leaves.
-        public static List<Expression> GetPossibleTrees(int N)
+        private List<Expression> GetPossibleTrees(int N)
         {
             // Don't put any numbers in these.  Only create the bracket/operation structure.
 
@@ -139,7 +143,7 @@ namespace Countdown.NumbersRound
         }
 
         // Returns a list of binary expressions using the 2 given expresssions and the types of operation wanted.
-        public static List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
+        private List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
         {
             var output = new List<Expression>();
 
@@ -152,7 +156,7 @@ namespace Countdown.NumbersRound
             return output;
         }
 
-        private static int GetTotalCombinations(List<float> availableNumbers)
+        private int GetTotalCombinations(List<float> availableNumbers)
         {
             int N = availableNumbers.Count;
             double total = 0;

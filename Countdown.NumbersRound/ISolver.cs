@@ -5,6 +5,6 @@ namespace Countdown.NumbersRound
 {
     public interface ISolver
     {
-        List<string> GetPossibleSolutions(int target, List<int> availableNums);
+        SolveResult GetPossibleSolutions(int target, List<int> availableNums);
     }
 }
