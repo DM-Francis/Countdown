@@ -29,14 +29,15 @@ namespace Countdown.Website.Controllers
             var solveTask = Task.Run(() => _solver.GetPossibleSolutions(target, chosenNums));
             var problem = new Problem { Target = target, AvailableNumbers = chosenNums };
 
-            List<string> solutions = await solveTask;
-            var solutionsData = solutions.Select(sol => new Solution { Problem = problem, Value = sol });
+            SolveResult result = await solveTask;
+            var solutionsData = result.Solutions.Select(sol => new Solution { Problem = problem, Value = sol });
 
+            problem.ClosestDiff = result.ClosestDiff;
             _context.Add(problem);
             _context.AddRange(solutionsData);
 
             await _context.SaveChangesAsync().ConfigureAwait(false);
-            return solutions;
+            return result;
         }
     }
 }

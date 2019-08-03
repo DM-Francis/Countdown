@@ -3,14 +3,16 @@ using System;
 using Countdown.Website.DataModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Countdown.Website.Migrations
 {
     [DbContext(typeof(CountdownContext))]
-    partial class CountdownContextModelSnapshot : ModelSnapshot
+    [Migration("20190803232007_AddClosestDiffColumn")]
+    partial class AddClosestDiffColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

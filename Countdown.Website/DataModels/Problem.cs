@@ -10,6 +10,7 @@ namespace Countdown.Website.DataModels
         public int ProblemId { get; set; }
         public int Target { get; set; }
         public List<int> AvailableNumbers { get; set; }
+        public int ClosestDiff { get; internal set; }
 
         public ICollection<Solution> Solutions { get; set; }
     }
