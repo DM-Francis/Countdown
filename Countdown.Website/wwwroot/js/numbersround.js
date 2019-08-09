@@ -5,8 +5,7 @@ var target;
 function onClickNewTarget() {
     target = Math.floor(Math.random() * 900) + 100;
 
-    document.getElementById("target-input").setAttribute("value", String(target));
-    document.getElementById("target-text").innerHTML = String(target);
+    document.getElementById("target-input").value = String(target);
 }
 
 function onClickGenerateNumbers() {
