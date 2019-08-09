@@ -70,13 +70,23 @@ body {
     border-width: thick;
 }
 
-input.num-input::-webkit-outer-spin-button,
-input.num-input::-webkit-inner-spin-button {
-    /* display: none; <- Crashes Chrome on hover */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    display: none;
     -webkit-appearance: none;
-    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    margin: 0;
 }
 
-input[type=number].num-input {
+input[type=number] {
     -moz-appearance: textfield; /* Firefox */
+}
+
+#target-text {
+    font-weight: bold;
+}
+
+#target-input {
+    font-weight: bold;
+    border: none;
+    text-align: center;
 }
