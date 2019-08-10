@@ -60,6 +60,9 @@ function overrideFormSubmit() {
 
 function sendNumberData(form) {
     document.getElementById("spinner-solving").hidden = false;
+    document.getElementById("solutions").hidden = true;
+    clearSolutionList();
+
     var btns = document.getElementsByClassName("btn")
 
     for (const key in btns) {
@@ -72,41 +75,64 @@ function sendNumberData(form) {
         type: form.method,
         contentType: "application/x-www-form-urlencoded",
         data: $(form).serialize(),
-        success: sendNumberSuccess
+        success: sendNumberSuccess,
+        error: sendNumberError
     })
 }
 
-function sendNumberSuccess(data, textStatus) {
+function sendNumberSuccess(data) {
     console.log(data);
     document.getElementById("solutions").hidden = false;
+    document.getElementById("solutions-header").hidden = false;
 
-    var solutionList = document.getElementById("solution-list");
-    while (solutionList.hasChildNodes()) {
-        solutionList.removeChild(solutionList.firstChild)
-    }
-
+    clearSolutionList();
     var solData = JSON.parse(data);
 
     if (solData["closestDiff"] != 0) {
-        appendPElementToSolutions(solutionList, "No solutions found!");
-        appendPElementToSolutions(solutionList, `Found results ${solData["closestDiff"]} away.`);
+        appendPElementToSolutions("No solutions found!");
+        appendPElementToSolutions(`Found results ${solData["closestDiff"]} away.`);
     }
 
     for (const key in solData["solutions"]) {
         let solution = solData["solutions"][key];
-        appendPElementToSolutions(solutionList, solution);
+        appendPElementToSolutions(solution);
     }
 
+    disableSpinnerAndReenableButtons();
+}
+
+function sendNumberError(e) {
+    console.log(e);
+    disableSpinnerAndReenableButtons();
+
+    clearSolutionList();
+    document.getElementById("solutions").hidden = false;
+    document.getElementById("solutions-header").hidden = true;
+
+    appendPElementToSolutions("Something went wrong! Please check the values entered are valid.");
+
+}
+
+function clearSolutionList() {
+    var solutionList = document.getElementById("solution-list");
+    while (solutionList.hasChildNodes()) {
+        solutionList.removeChild(solutionList.firstChild)
+    }
+}
+
+function appendPElementToSolutions(text) {
+    var solutionList = document.getElementById("solution-list");
+
+    var newP = document.createElement("p");
+    var textNode = document.createTextNode(text);
+    newP.appendChild(textNode);
+    solutionList.appendChild(newP);
+}
+
+function disableSpinnerAndReenableButtons() {
     document.getElementById("spinner-solving").hidden = true;
     var btns = document.getElementsByClassName("btn");
     for (const key in btns) {
         btns[key].disabled = false;
     }
-}
-
-function appendPElementToSolutions(solutionList, text) {
-    var newP = document.createElement("p");
-    var textNode = document.createTextNode(text);
-    newP.appendChild(textNode);
-    solutionList.appendChild(newP);
 }
