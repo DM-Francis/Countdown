@@ -38,12 +38,6 @@ namespace Countdown.Website
 
             services.AddTransient<ISolver, Solver>();
 
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                options.CheckConsentNeeded = _ => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
-
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new Info { Title = "Countdown Solve API", Version = "v1" })
             );

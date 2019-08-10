@@ -4,7 +4,7 @@
     ViewData["Title"] = "Numbers Round";
 }
 <h1 class="row justify-content-center display-4">Numbers Round</h1>
-<form asp-route="numbers-solve" id="number-data-form" method="post">
+<form asp-route="numbers-solve" id="number-data-form" method="post" asp-antiforgery="false">
     <div class="row justify-content-center">
         <input asp-for="@Model.Target" id="target-input" class="h1" />
     </div>
