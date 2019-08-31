@@ -18,7 +18,7 @@ namespace Countdown.NumbersRound
         private readonly ILogger _logger;
 
         private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
-        private List<(Expression exp, float result)> _solutions = new List<(Expression, float)>();
+        private List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
 
         private int _target;
@@ -39,17 +39,15 @@ namespace Countdown.NumbersRound
             _totalSearched = 0;
             _validCount = 0;
 
-            List<float> availableNumsFloat = availableNums.Select(i => (float)i).ToList();
+            List<double> availableNumsdouble = availableNums.Select(i => (double)i).ToList();
 
             int N = availableNums.Count;
             _currentClosestDiff = target;
             for (int i = 1; i <= N; i++)
             {
-                TestExpressionsOfLength(i, availableNumsFloat);
+                TestExpressionsOfLength(i, availableNumsdouble);
             }
-
-            // Dedupe solutions
-            var solutionStrings = _solutions.Select(sol => $"{sol.exp} = {sol.result}").Distinct().ToList();
+            List<string> solutionStrings = RenderSolutionExpressions();
             stopWatch.Stop();
 
             _logger.LogInformation("Available numbers = {availableNums}", string.Join(',', availableNums));
@@ -64,31 +62,45 @@ namespace Countdown.NumbersRound
             return new SolveResult { ClosestDiff = _currentClosestDiff, Solutions = solutionStrings };
         }
 
-        private void TestExpressionsOfLength(int N, List<float> availableNums)
+        private void TestExpressionsOfLength(int N, List<double> availableNums)
         {
-            var variations = new Variations<float>(availableNums, N, GenerateOption.WithoutRepetition);
+            /*
+            New algorithm:
+            1. For each N, we will create a list of expressions, where each expression has N parameters.
+            2. Compile each expression into a lambda with N parameters.
+            3. Evaluate each lambda with all possible number combinations.
+            */
 
-            foreach (var variation in variations)
+            var variations = new Variations<double>(availableNums, N, GenerateOption.WithoutRepetition);
+            var variationIterable = variations.Select(l => l.ToArray()).ToArray();
+
+            foreach (var exp in GetPossibleTrees(N))
             {
-                foreach (var exp in GetPossibleTrees(N))
+                var paramExpression = Expression.Parameter(typeof(double[]));
+                var populator = new Populator(paramExpression);
+                Expression expWithParam = populator.Populate(exp);
+
+                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
+                var del = lambda.Compile();
+
+                foreach (var variation in variationIterable)
                 {
-                    var evaluator = new Evaluator(variation);
-                    var result = evaluator.Evaluate(exp);
+                    double result = del.Invoke(variation);
                     _totalSearched++;
 
-                    float diff = Math.Abs(_target - result);
+                    double diff = Math.Abs(_target - result);
                     if (diff == _currentClosestDiff)
                     {
-                        AddResultToSolutions(variation, exp, result);
+                        AddResultToSolutions(exp, result, variation);
                     }
                     else if (diff < _currentClosestDiff)
                     {
                         _solutions.Clear();
                         _currentClosestDiff = (int)diff;
-                        AddResultToSolutions(variation, exp, result);
+                        AddResultToSolutions(exp, result, variation);
                     }
 
-                    if (!float.IsNaN(result))
+                    if (!double.IsNaN(result))
                     {
                         _validCount++;
                     }
@@ -96,18 +108,15 @@ namespace Countdown.NumbersRound
             }
         }
 
-        private void AddResultToSolutions(IList<float> variation, Expression exp, float result)
+        private void AddResultToSolutions(Expression exp, double result, double[] variation)
         {
-            var populator = new Populator(variation);
-            var newExp = populator.Populate(exp);
-            _solutions.Add((newExp, result));
+            _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation)});
         }
 
-        // Method to create possible expression trees with N leaves.
+        // Method to create possible expression trees with N leaves.  Each expression should take N parameters.
         private List<Expression> GetPossibleTrees(int N)
         {
-            // Don't put any numbers in these.  Only create the bracket/operation structure.
-
+            // Don't put any numbers in these.  Only create the bracket/operation structure. Each number is a parameter.
             // Check cache first
             if (_expressionCache.ContainsKey(N))
             {
@@ -120,7 +129,7 @@ namespace Countdown.NumbersRound
 
             if (N == 1)
             {
-                resultList.Add(Expression.Constant((float)1));
+                resultList.Add(Expression.Parameter(typeof(double)));
             }
             else
             {
@@ -156,17 +165,20 @@ namespace Countdown.NumbersRound
             return output;
         }
 
-        private int GetTotalCombinations(List<float> availableNumbers)
+        private List<string> RenderSolutionExpressions()
         {
-            int N = availableNumbers.Count;
-            double total = 0;
-
-            for (int n = 1; n <= N; n++)
+            List<string> solStrings = new List<string>();
+            foreach (var sol in _solutions)
             {
-                total += Math.Pow(4, n - 1) * (SF.Factorial(N) / (n * SF.Factorial(N - n))) * SF.Binomial(2 * n - 2, n - 1);
+                // Populate values in the expression
+                var populator = new Populator(sol.Params);
+                var finalExp = populator.Populate(sol.Expression);
+
+                // Write expression as string
+                solStrings.Add($"{finalExp} = {sol.Result}");
             }
 
-            return (int)total;
+            return solStrings.Distinct().ToList();
         }
     }
 }
