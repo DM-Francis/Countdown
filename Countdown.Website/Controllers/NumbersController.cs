@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Countdown.NumbersRound.Solve;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Countdown.Website.Controllers
@@ -21,9 +18,15 @@ namespace Countdown.Website.Controllers
 
         [HttpPost]
         [Route("solve", Name = "numbers-solve")]
-        public async Task<SolveResult> SolveAsync(int target, List<int> chosenNums)
+        public async Task<IActionResult> SolveAsync(int target, List<int> chosenNums)
         {
-            return await Task.Run(() => _solver.GetPossibleSolutions(target, chosenNums)).ConfigureAwait(false);
+            if (chosenNums.Count == 0 || chosenNums.Count > 6)
+            {
+                return BadRequest();
+            }
+
+            var solveResult = await Task.Run(() => _solver.GetPossibleSolutions(target, chosenNums));
+            return Ok(solveResult);
         }
     }
 }
