@@ -32,6 +32,8 @@ namespace Countdown.NumbersRound
 
         public Expression Populate(Expression expression)
         {
+            _currIndex = 0;
+
             if (expression.NodeType == ExpressionType.Parameter)
             {
                 return CreateEndNodeExpression();

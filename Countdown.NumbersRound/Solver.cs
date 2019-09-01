@@ -3,6 +3,7 @@ using SF = MathNet.Numerics.SpecialFunctions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
@@ -17,7 +18,9 @@ namespace Countdown.NumbersRound
 
         private readonly ILogger _logger;
 
-        private readonly Dictionary<int, List<Expression>> _expressionCache = new Dictionary<int, List<Expression>>();
+        private static readonly ConcurrentDictionary<int, List<Expression>> _expressionCache = new ConcurrentDictionary<int, List<Expression>>();
+        private static readonly ConcurrentDictionary<int, List<DelegateExpressionPair>> _delegateCache = new ConcurrentDictionary<int, List<DelegateExpressionPair>>();
+
         private List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
 
@@ -74,30 +77,28 @@ namespace Countdown.NumbersRound
             var variations = new Variations<double>(availableNums, N, GenerateOption.WithoutRepetition);
             var variationIterable = variations.Select(l => l.ToArray()).ToArray();
 
-            foreach (var exp in GetPossibleTrees(N))
+            foreach (var pair in GetAllDelegates(N))
             {
-                var paramExpression = Expression.Parameter(typeof(double[]));
-                var populator = new Populator(paramExpression);
-                Expression expWithParam = populator.Populate(exp);
-
-                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
-                var del = lambda.Compile();
-
                 foreach (var variation in variationIterable)
                 {
-                    double result = del.Invoke(variation);
+                    double result = pair.Delegate.Invoke(variation);
                     _totalSearched++;
+
+                    if (result % 1 != 0)
+                    {
+                        continue;
+                    }
 
                     double diff = Math.Abs(_target - result);
                     if (diff == _currentClosestDiff)
                     {
-                        AddResultToSolutions(exp, result, variation);
+                        AddResultToSolutions(pair.Expression, result, variation);
                     }
                     else if (diff < _currentClosestDiff)
                     {
                         _solutions.Clear();
                         _currentClosestDiff = (int)diff;
-                        AddResultToSolutions(exp, result, variation);
+                        AddResultToSolutions(pair.Expression, result, variation);
                     }
 
                     if (!double.IsNaN(result))
@@ -113,42 +114,66 @@ namespace Countdown.NumbersRound
             _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation)});
         }
 
-        // Method to create possible expression trees with N leaves.  Each expression should take N parameters.
-        private List<Expression> GetPossibleTrees(int N)
+        private List<DelegateExpressionPair> GetAllDelegates(int N)
         {
-            // Don't put any numbers in these.  Only create the bracket/operation structure. Each number is a parameter.
-            // Check cache first
-            if (_expressionCache.ContainsKey(N))
+            if (_delegateCache.TryGetValue(N, out List<DelegateExpressionPair> cacheResult))
             {
-                _expressionCache.TryGetValue(N, out List<Expression> cacheResult);
-
                 return cacheResult;
             }
 
-            var resultList = new List<Expression>();
+            var delegateList = new List<DelegateExpressionPair>();
+            var paramExpression = Expression.Parameter(typeof(double[]));
+            var populator = new Populator(paramExpression);
+
+            foreach (var exp in GetPossibleExpressions(N))
+            {
+                Expression expWithParam = populator.Populate(exp);
+
+                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
+                var pair = new DelegateExpressionPair { Delegate = lambda.Compile(), Expression = exp };
+
+                delegateList.Add(pair);
+            }
+
+            _delegateCache.TryAdd(N, delegateList);
+
+            return delegateList;
+        }
+
+        // Method to create possible expression trees with N leaves.  Each expression should take N parameters.
+        private List<Expression> GetPossibleExpressions(int N)
+        {
+            // Don't put any numbers in these.  Only create the bracket/operation structure. Each number is a parameter.
+            // Check cache first
+            if (_expressionCache.TryGetValue(N, out List<Expression> cacheResult))
+            {
+                return cacheResult;
+            }
+
+            var expressionList = new List<Expression>();
 
             if (N == 1)
             {
-                resultList.Add(Expression.Parameter(typeof(double)));
+                expressionList.Add(Expression.Parameter(typeof(double)));
             }
             else
             {
                 for (int x = 1; x < N; x++)
                 {
-                    foreach (var leftTree in GetPossibleTrees(x))
+                    foreach (var leftTree in GetPossibleExpressions(x))
                     {
-                        foreach (var rightTree in GetPossibleTrees(N - x))
+                        foreach (var rightTree in GetPossibleExpressions(N - x))
                         {
                             var possibleExpressions = GetBinaryExpressions(leftTree, rightTree, _operations);
-                            resultList.AddRange(possibleExpressions);
+                            expressionList.AddRange(possibleExpressions);
                         }
                     }
                 }
             }
 
-            _expressionCache.Add(N, resultList);
+            _expressionCache.TryAdd(N, expressionList);
 
-            return resultList;
+            return expressionList;
         }
 
         // Returns a list of binary expressions using the 2 given expresssions and the types of operation wanted.
