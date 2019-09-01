@@ -75,7 +75,7 @@ namespace Countdown.NumbersRound.Solve
                     {
                         AddResultToSolutions(pair.Expression, result, variation);
                     }
-                    else if (diff < _currentClosestDiff)
+                    else if (diff < _currentClosestDiff && IsInteger(diff))
                     {
                         _solutions.Clear();
                         _currentClosestDiff = (int)diff;
@@ -85,12 +85,16 @@ namespace Countdown.NumbersRound.Solve
             }
         }
 
+        private bool IsInteger(double diff)
+        {
+            return diff % 1 == 0;
+        }
+
         private void AddResultToSolutions(Expression exp, double result, double[] variation)
         {
             _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation) });
         }
 
-        // Method to create possible expression trees with N leaves.  Each expression should take N parameters.
         private List<DelegateExpressionPair> GetAllDelegateExpressionPairs(int N)
         {
             if (_delegateCache.TryGetValue(N, out List<DelegateExpressionPair> cacheResult))
