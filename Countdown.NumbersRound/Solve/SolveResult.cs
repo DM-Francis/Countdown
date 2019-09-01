@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Solve
 {
     public class SolveResult
     {

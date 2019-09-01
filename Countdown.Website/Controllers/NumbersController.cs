@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Countdown.NumbersRound;
+using Countdown.NumbersRound.Solve;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

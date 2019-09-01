@@ -3,53 +3,56 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Expressions
 {
-    internal class Evaluator
+    internal class Validator
     {
-        private readonly Stack<float> _numberStack;
+        private readonly IList<double> _availableNums;
+        private int _currIndex = 0;
         private bool _invalid;
 
-        public Evaluator(IList<float> availableNums)
+        public Validator(IList<double> availableNums)
         {
-            _numberStack = new Stack<float>(availableNums);
+            _availableNums = availableNums;
         }
 
-        public float Evaluate(Expression expression)
+        public double CheckExpression(Expression expression)
         {
-            if (expression.GetType() == typeof(ConstantExpression))
+            _currIndex = 0;
+
+            if (expression.NodeType == ExpressionType.Parameter)
             {
-                return _numberStack.Pop();
+                return _availableNums[_currIndex++];
             }
 
             _invalid = false;
             return VisitBinary((BinaryExpression)expression);
         }
 
-        private float VisitBinary(BinaryExpression node)
+        private double VisitBinary(BinaryExpression node)
         {
             if (_invalid)
             {
-                return float.NaN;
+                return double.NaN;
             }
 
-            if (node.Left.NodeType == ExpressionType.Constant && node.Right.NodeType == ExpressionType.Constant) // Is a low level node
+            if (node.Left.NodeType == ExpressionType.Parameter && node.Right.NodeType == ExpressionType.Parameter) // Is a low level node
             {
-                float num1 = _numberStack.Pop();
-                float num2 = _numberStack.Pop();
+                double num1 = _availableNums[_currIndex++];
+                double num2 = _availableNums[_currIndex++];
 
                 return EvaluateOperation(node.NodeType, num1, num2);
             }
-            else if (node.Left.NodeType == ExpressionType.Constant)
+            else if (node.Left.NodeType == ExpressionType.Parameter)
             {
-                float num = _numberStack.Pop();
+                double num = _availableNums[_currIndex++];
                 var rightExp = (BinaryExpression)node.Right;
 
                 return EvaluateOperation(node.NodeType, num, VisitBinary(rightExp));
             }
-            else if (node.Right.NodeType == ExpressionType.Constant)
+            else if (node.Right.NodeType == ExpressionType.Parameter)
             {
-                float num = _numberStack.Pop();
+                double num = _availableNums[_currIndex++];
                 var leftExp = (BinaryExpression)node.Left;
 
                 return EvaluateOperation(node.NodeType, VisitBinary(leftExp), num);
@@ -63,12 +66,12 @@ namespace Countdown.NumbersRound
             }
         }
 
-        private float EvaluateOperation(ExpressionType operation, float num1, float num2)
+        private double EvaluateOperation(ExpressionType operation, double num1, double num2)
         {
             if (!OperationIsValid(operation, num1, num2))
             {
                 _invalid = true;
-                return float.NaN;
+                return double.NaN;
             }
 
             switch (operation)
@@ -83,11 +86,11 @@ namespace Countdown.NumbersRound
                     return num1 / num2;
                 default:
                     _invalid = true;
-                    return float.NaN;
+                    return double.NaN;
             }
         }
 
-        private bool OperationIsValid(ExpressionType operation, float num1, float num2)
+        private bool OperationIsValid(ExpressionType operation, double num1, double num2)
         {
             if (num1 < num2)
             {
