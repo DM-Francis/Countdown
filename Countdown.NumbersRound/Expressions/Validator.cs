@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Countdown.NumbersRound.Expressions
 {
     internal class Validator
     {
         private readonly IList<double> _availableNums;
-        private int _currIndex = 0;
+        private int _currIndex;
         private bool _invalid;
 
         public Validator(IList<double> availableNums)

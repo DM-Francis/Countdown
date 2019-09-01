@@ -1,15 +1,12 @@
 ﻿using Combinatorics.Collections;
-using SF = MathNet.Numerics.SpecialFunctions;
+using Countdown.NumbersRound.Expressions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using System.Linq;
-using Countdown.NumbersRound.Expressions;
+using System.Linq.Expressions;
 
 namespace Countdown.NumbersRound.Solve
 {
@@ -22,7 +19,6 @@ namespace Countdown.NumbersRound.Solve
 
         private List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
-
         private int _target;
 
         public Solver(ILogger<Solver> logger)

@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Countdown.NumbersRound.Solve;
+﻿using Countdown.NumbersRound.Solve;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Countdown.Website.Controllers
 {

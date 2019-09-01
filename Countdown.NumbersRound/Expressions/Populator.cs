@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Countdown.NumbersRound.Expressions
 {
@@ -15,7 +14,7 @@ namespace Countdown.NumbersRound.Expressions
     {
         private readonly ParameterExpression _arrayParameter;
         private readonly List<double> _availableNums;
-        private int _currIndex = 0;
+        private int _currIndex;
         private PopulateMode _mode;
 
         public Populator(ParameterExpression arrayParameter)
