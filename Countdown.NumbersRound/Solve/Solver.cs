@@ -46,7 +46,6 @@ namespace Countdown.NumbersRound.Solve
                 CheckExpressionsOfLength(i, availableNumsDouble);
             }
 
-            ValidateAndDedupeSolutions();
             List<string> solutionStrings = RenderSolutionExpressions();
             stopWatch.Stop();
 
@@ -71,11 +70,11 @@ namespace Countdown.NumbersRound.Solve
                     double result = pair.Delegate.Invoke(variation);
                     double diff = Math.Abs(_target - result);
 
-                    if (diff == _currentClosestDiff)
+                    if (diff == _currentClosestDiff && SolutionIsValid(pair.Expression, result, variation))
                     {
                         AddResultToSolutions(pair.Expression, result, variation);
                     }
-                    else if (diff < _currentClosestDiff && IsInteger(diff))
+                    else if (diff < _currentClosestDiff && SolutionIsValid(pair.Expression, result, variation))
                     {
                         _solutions.Clear();
                         _currentClosestDiff = (int)diff;
@@ -85,9 +84,17 @@ namespace Countdown.NumbersRound.Solve
             }
         }
 
-        private bool IsInteger(double diff)
+        private bool SolutionIsValid(Expression expression, double result, double[] availableNums)
         {
-            return diff % 1 == 0;
+            if (result % 1 != 0)
+            {
+                return false;
+            }
+
+            var validator = new Validator(availableNums);
+            var validatedResult = validator.CheckExpression(expression); // Returns double.NaN if invalid or a dupe
+
+            return !double.IsNaN(validatedResult);
         }
 
         private void AddResultToSolutions(Expression exp, double result, double[] variation)
@@ -160,24 +167,6 @@ namespace Countdown.NumbersRound.Solve
             }
 
             return outputList;
-        }
-
-        private void ValidateAndDedupeSolutions()
-        {
-            // For each solution, re-evaluate the expression, removing the solution if we believe it to be a dupe or invalid.
-            var dedupedSolutions = new List<Solution>();
-            foreach(var sol in _solutions)
-            {
-                var validator = new Validator(sol.Params);
-                var result = validator.CheckExpression(sol.Expression); // Returns double.NaN if a dupe
-
-                if (!double.IsNaN(result))
-                {
-                    dedupedSolutions.Add(sol);
-                }
-            }
-
-            _solutions = dedupedSolutions;
         }
 
         private List<string> RenderSolutionExpressions()
