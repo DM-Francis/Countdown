@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Expressions
 {
-    public class Solution
+    internal class DelegateExpressionPair
     {
+        public Func<double[], double> Delegate { get; set; }
         public Expression Expression { get; set; }
-        public List<double> Params { get; set; }
-        public double Result { get; set; }
     }
 }

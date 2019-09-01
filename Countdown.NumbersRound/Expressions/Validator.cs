@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Expressions
 {
-    internal class Evaluator
+    internal class Validator
     {
-        private readonly Stack<double> _numberStack;
+        private readonly IList<double> _availableNums;
+        private int _currIndex = 0;
         private bool _invalid;
 
-        public Evaluator(IList<double> availableNums)
+        public Validator(IList<double> availableNums)
         {
-            _numberStack = new Stack<double>(availableNums);
+            _availableNums = availableNums;
         }
 
-        public double Evaluate(Expression expression)
+        public double CheckExpression(Expression expression)
         {
-            if (expression.GetType() == typeof(ConstantExpression))
+            _currIndex = 0;
+
+            if (expression.NodeType == ExpressionType.Parameter)
             {
-                return _numberStack.Pop();
+                return _availableNums[_currIndex++];
             }
 
             _invalid = false;
@@ -33,23 +36,23 @@ namespace Countdown.NumbersRound
                 return double.NaN;
             }
 
-            if (node.Left.NodeType == ExpressionType.Constant && node.Right.NodeType == ExpressionType.Constant) // Is a low level node
+            if (node.Left.NodeType == ExpressionType.Parameter && node.Right.NodeType == ExpressionType.Parameter) // Is a low level node
             {
-                double num1 = _numberStack.Pop();
-                double num2 = _numberStack.Pop();
+                double num1 = _availableNums[_currIndex++];
+                double num2 = _availableNums[_currIndex++];
 
                 return EvaluateOperation(node.NodeType, num1, num2);
             }
-            else if (node.Left.NodeType == ExpressionType.Constant)
+            else if (node.Left.NodeType == ExpressionType.Parameter)
             {
-                double num = _numberStack.Pop();
+                double num = _availableNums[_currIndex++];
                 var rightExp = (BinaryExpression)node.Right;
 
                 return EvaluateOperation(node.NodeType, num, VisitBinary(rightExp));
             }
-            else if (node.Right.NodeType == ExpressionType.Constant)
+            else if (node.Right.NodeType == ExpressionType.Parameter)
             {
-                double num = _numberStack.Pop();
+                double num = _availableNums[_currIndex++];
                 var leftExp = (BinaryExpression)node.Left;
 
                 return EvaluateOperation(node.NodeType, VisitBinary(leftExp), num);

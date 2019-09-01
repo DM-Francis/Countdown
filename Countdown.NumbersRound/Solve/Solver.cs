@@ -9,24 +9,21 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using Countdown.NumbersRound.Expressions;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Solve
 {
     public class Solver : ISolver
     {
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
+        private static readonly ConcurrentDictionary<int, List<DelegateExpressionPair>> _delegateCache = new ConcurrentDictionary<int, List<DelegateExpressionPair>>();
 
         private readonly ILogger _logger;
-
-        private static readonly ConcurrentDictionary<int, List<Expression>> _expressionCache = new ConcurrentDictionary<int, List<Expression>>();
-        private static readonly ConcurrentDictionary<int, List<DelegateExpressionPair>> _delegateCache = new ConcurrentDictionary<int, List<DelegateExpressionPair>>();
 
         private List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
 
         private int _target;
-        private int _totalSearched;
-        private int _validCount;
 
         public Solver(ILogger<Solver> logger)
         {
@@ -39,25 +36,22 @@ namespace Countdown.NumbersRound
             stopWatch.Start();
 
             _target = target;
-            _totalSearched = 0;
-            _validCount = 0;
 
-            List<double> availableNumsdouble = availableNums.Select(i => (double)i).ToList();
+            List<double> availableNumsDouble = availableNums.Select(i => (double)i).ToList();
 
             int N = availableNums.Count;
             _currentClosestDiff = target;
             for (int i = 1; i <= N; i++)
             {
-                TestExpressionsOfLength(i, availableNumsdouble);
+                CheckExpressionsOfLength(i, availableNumsDouble);
             }
+
+            ValidateAndDedupeSolutions();
             List<string> solutionStrings = RenderSolutionExpressions();
             stopWatch.Stop();
 
-            _logger.LogInformation("Available numbers = {availableNums}", string.Join(',', availableNums));
+            _logger.LogInformation("Available numbers = {availableNums}", string.Join(",", availableNums));
             _logger.LogInformation("Target = {target}", _target);
-
-            _logger.LogInformation("Total searched = {totalSearched}", _totalSearched);
-            _logger.LogInformation("Valid expressions found = {validCount}", _validCount);
             _logger.LogInformation("{solutionCount} solutions found", solutionStrings.Count);
             _logger.LogInformation("{solutions}", solutionStrings);
             _logger.LogInformation("Time taken: {timeTaken}", stopWatch.Elapsed.Duration().ToString());
@@ -65,31 +59,18 @@ namespace Countdown.NumbersRound
             return new SolveResult { ClosestDiff = _currentClosestDiff, Solutions = solutionStrings };
         }
 
-        private void TestExpressionsOfLength(int N, List<double> availableNums)
+        private void CheckExpressionsOfLength(int N, List<double> availableNums)
         {
-            /*
-            New algorithm:
-            1. For each N, we will create a list of expressions, where each expression has N parameters.
-            2. Compile each expression into a lambda with N parameters.
-            3. Evaluate each lambda with all possible number combinations.
-            */
-
             var variations = new Variations<double>(availableNums, N, GenerateOption.WithoutRepetition);
             var variationIterable = variations.Select(l => l.ToArray()).ToArray();
 
-            foreach (var pair in GetAllDelegates(N))
+            foreach (var pair in GetAllDelegateExpressionPairs(N))
             {
                 foreach (var variation in variationIterable)
                 {
                     double result = pair.Delegate.Invoke(variation);
-                    _totalSearched++;
-
-                    if (result % 1 != 0)
-                    {
-                        continue;
-                    }
-
                     double diff = Math.Abs(_target - result);
+
                     if (diff == _currentClosestDiff)
                     {
                         AddResultToSolutions(pair.Expression, result, variation);
@@ -100,52 +81,19 @@ namespace Countdown.NumbersRound
                         _currentClosestDiff = (int)diff;
                         AddResultToSolutions(pair.Expression, result, variation);
                     }
-
-                    if (!double.IsNaN(result))
-                    {
-                        _validCount++;
-                    }
                 }
             }
         }
 
         private void AddResultToSolutions(Expression exp, double result, double[] variation)
         {
-            _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation)});
-        }
-
-        private List<DelegateExpressionPair> GetAllDelegates(int N)
-        {
-            if (_delegateCache.TryGetValue(N, out List<DelegateExpressionPair> cacheResult))
-            {
-                return cacheResult;
-            }
-
-            var delegateList = new List<DelegateExpressionPair>();
-            var paramExpression = Expression.Parameter(typeof(double[]));
-            var populator = new Populator(paramExpression);
-
-            foreach (var exp in GetPossibleExpressions(N))
-            {
-                Expression expWithParam = populator.Populate(exp);
-
-                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
-                var pair = new DelegateExpressionPair { Delegate = lambda.Compile(), Expression = exp };
-
-                delegateList.Add(pair);
-            }
-
-            _delegateCache.TryAdd(N, delegateList);
-
-            return delegateList;
+            _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation) });
         }
 
         // Method to create possible expression trees with N leaves.  Each expression should take N parameters.
-        private List<Expression> GetPossibleExpressions(int N)
+        private List<DelegateExpressionPair> GetAllDelegateExpressionPairs(int N)
         {
-            // Don't put any numbers in these.  Only create the bracket/operation structure. Each number is a parameter.
-            // Check cache first
-            if (_expressionCache.TryGetValue(N, out List<Expression> cacheResult))
+            if (_delegateCache.TryGetValue(N, out List<DelegateExpressionPair> cacheResult))
             {
                 return cacheResult;
             }
@@ -160,9 +108,9 @@ namespace Countdown.NumbersRound
             {
                 for (int x = 1; x < N; x++)
                 {
-                    foreach (var leftTree in GetPossibleExpressions(x))
+                    foreach (var leftTree in GetAllDelegateExpressionPairs(x).Select(p => p.Expression))
                     {
-                        foreach (var rightTree in GetPossibleExpressions(N - x))
+                        foreach (var rightTree in GetAllDelegateExpressionPairs(N - x).Select(p => p.Expression))
                         {
                             var possibleExpressions = GetBinaryExpressions(leftTree, rightTree, _operations);
                             expressionList.AddRange(possibleExpressions);
@@ -171,12 +119,13 @@ namespace Countdown.NumbersRound
                 }
             }
 
-            _expressionCache.TryAdd(N, expressionList);
+            var outputList = CreateDelegatePairsFromExpressions(expressionList);
 
-            return expressionList;
+            _delegateCache.TryAdd(N, outputList);
+
+            return outputList;
         }
 
-        // Returns a list of binary expressions using the 2 given expresssions and the types of operation wanted.
         private List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
         {
             var output = new List<Expression>();
@@ -190,6 +139,43 @@ namespace Countdown.NumbersRound
             return output;
         }
 
+        private List<DelegateExpressionPair> CreateDelegatePairsFromExpressions(List<Expression> expressionList)
+        {
+            var outputList = new List<DelegateExpressionPair>();
+            var paramExpression = Expression.Parameter(typeof(double[]));
+            var populator = new Populator(paramExpression);
+
+            foreach (var exp in expressionList)
+            {
+                Expression expWithParam = populator.Populate(exp);
+
+                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
+                var pair = new DelegateExpressionPair { Delegate = lambda.Compile(), Expression = exp };
+
+                outputList.Add(pair);
+            }
+
+            return outputList;
+        }
+
+        private void ValidateAndDedupeSolutions()
+        {
+            // For each solution, re-evaluate the expression, removing the solution if we believe it to be a dupe or invalid.
+            var dedupedSolutions = new List<Solution>();
+            foreach(var sol in _solutions)
+            {
+                var validator = new Validator(sol.Params);
+                var result = validator.CheckExpression(sol.Expression); // Returns double.NaN if a dupe
+
+                if (!double.IsNaN(result))
+                {
+                    dedupedSolutions.Add(sol);
+                }
+            }
+
+            _solutions = dedupedSolutions;
+        }
+
         private List<string> RenderSolutionExpressions()
         {
             List<string> solStrings = new List<string>();
@@ -200,7 +186,15 @@ namespace Countdown.NumbersRound
                 var finalExp = populator.Populate(sol.Expression);
 
                 // Write expression as string
-                solStrings.Add($"{finalExp} = {sol.Result}");
+                string expString = finalExp.ToString();
+
+                // Remove unneeded parentheses
+                if (finalExp.NodeType != ExpressionType.Constant) // Not a single number
+                {
+                    expString = expString.Substring(1, expString.Length - 2);
+                }
+
+                solStrings.Add($"{expString} = {sol.Result}");
             }
 
             return solStrings.Distinct().ToList();

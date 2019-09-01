@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Countdown.NumbersRound
+namespace Countdown.NumbersRound.Expressions
 {
     internal enum PopulateMode
     {
@@ -51,24 +51,24 @@ namespace Countdown.NumbersRound
 
             if (node.Left.NodeType == ExpressionType.Parameter && node.Right.NodeType == ExpressionType.Parameter) // Is a low level node
             {
-                var param1 = CreateEndNodeExpression();
-                var param2 = CreateEndNodeExpression();
+                var endNode1 = CreateEndNodeExpression();
+                var endNode2 = CreateEndNodeExpression();
 
-                return Expression.MakeBinary(node.NodeType, param1, param2);
+                return Expression.MakeBinary(node.NodeType, endNode1, endNode2);
             }
             else if (node.Left.NodeType == ExpressionType.Parameter)
             {
-                var param = CreateEndNodeExpression();
+                var endNode = CreateEndNodeExpression();
                 var newRight = Visit(node.Right);
 
-                return Expression.MakeBinary(node.NodeType, param, newRight);
+                return Expression.MakeBinary(node.NodeType, endNode, newRight);
             }
             else if (node.Right.NodeType == ExpressionType.Parameter)
             {
-                var param = CreateEndNodeExpression();
+                var endNode = CreateEndNodeExpression();
                 var newLeft = Visit(node.Left);
 
-                return Expression.MakeBinary(node.NodeType, newLeft, param);
+                return Expression.MakeBinary(node.NodeType, newLeft, endNode);
             }
 
             return base.VisitBinary(node);
