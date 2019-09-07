@@ -5,8 +5,11 @@ namespace Countdown.NumbersRound.Solve
 {
     internal class Solution
     {
-        public Expression Expression { get; set; }
-        public List<double> Params { get; set; }
-        public double Result { get; set; }
+        public Expression Expression { get; }
+        public List<double> Parameters { get; }
+        public double Result { get; }
+
+        public Solution(Expression expression, List<double> parameters, double result)
+            => (Expression, Parameters, Result) = (expression, parameters, result);
     }
 }

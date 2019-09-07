@@ -15,8 +15,6 @@ namespace Countdown.Website.Pages
         [BindProperty]
         public List<int> ChosenNums { get; set; } = new List<int>();
 
-        public List<string> Solutions { get; set; }
-
         public int DefaultNumListSize { get; } = 6;
         public List<int> AvailableLarge { get; } = new List<int> { 25, 50, 75, 100 };
         public List<int> AvailableSmall { get; } = new List<int> { 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10 };

@@ -17,7 +17,7 @@ namespace Countdown.NumbersRound.Solve
 
         private readonly ILogger _logger;
 
-        private List<Solution> _solutions = new List<Solution>();
+        private readonly List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
         private int _target;
 
@@ -51,7 +51,7 @@ namespace Countdown.NumbersRound.Solve
             _logger.LogInformation("{solutions}", solutionStrings);
             _logger.LogInformation("Time taken: {timeTaken}", stopWatch.Elapsed.Duration().ToString());
 
-            return new SolveResult { ClosestDiff = _currentClosestDiff, Solutions = solutionStrings };
+            return new SolveResult(closestDiff: _currentClosestDiff, solutions: solutionStrings);
         }
 
         private void CheckExpressionsOfLength(int N, List<double> availableNums)
@@ -95,7 +95,7 @@ namespace Countdown.NumbersRound.Solve
 
         private void AddResultToSolutions(Expression exp, double result, double[] variation)
         {
-            _solutions.Add(new Solution() { Expression = exp, Result = result, Params = new List<double>(variation) });
+            _solutions.Add(new Solution(expression: exp, parameters: new List<double>(variation), result: result));
         }
 
         private List<DelegateExpressionPair> GetAllDelegateExpressionPairs(int N)
@@ -157,7 +157,7 @@ namespace Countdown.NumbersRound.Solve
                 Expression expWithParam = populator.Populate(exp);
 
                 var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
-                var pair = new DelegateExpressionPair { Delegate = lambda.Compile(), Expression = exp };
+                var pair = new DelegateExpressionPair(del: lambda.Compile(), expression: exp);
 
                 outputList.Add(pair);
             }
@@ -171,7 +171,7 @@ namespace Countdown.NumbersRound.Solve
             foreach (var sol in _solutions)
             {
                 // Populate values in the expression
-                var populator = new Populator(sol.Params);
+                var populator = new Populator(sol.Parameters);
                 var finalExp = populator.Populate(sol.Expression);
 
                 // Write expression as string

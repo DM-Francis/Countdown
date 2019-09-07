@@ -12,10 +12,10 @@ namespace Countdown.NumbersRound.Expressions
 
     internal class Populator : ExpressionVisitor
     {
-        private readonly ParameterExpression _arrayParameter;
-        private readonly List<double> _availableNums;
+        private readonly ParameterExpression? _arrayParameter;
+        private readonly List<double> _availableNums = new List<double>();
         private int _currIndex;
-        private PopulateMode _mode;
+        private readonly PopulateMode _mode;
 
         public Populator(ParameterExpression arrayParameter)
         {
