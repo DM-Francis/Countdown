@@ -5,7 +5,7 @@ variables:
   testprojectlocation: '**/Tests/*.csproj'
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: Azure Pipelines
 
 steps:
 - task: UseDotNet@2
