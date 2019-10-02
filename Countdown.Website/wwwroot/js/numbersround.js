@@ -8,7 +8,7 @@ function onClickNewTarget() {
     document.getElementById("target-input").value = String(target);
 }
 
-function onClickGenerateNumbers() {
+function onClickRandomNumbers() {
     var availableNums = [];
 
     var rawdatalarge = document.getElementById("num-data").getAttribute("data-large-nums");
@@ -26,6 +26,35 @@ function onClickGenerateNumbers() {
     for (var i = 0; i < elements.length; i++) {
         var inputElement = elements.item(i);
         inputElement.value = String(availableNums.pop());
+    }
+}
+
+function onClickLargeSmallNumbers(large, small) {
+
+    var rawdatalarge = document.getElementById("num-data").getAttribute("data-large-nums");
+    var rawdatasmall = document.getElementById("num-data").getAttribute("data-small-nums");
+
+    var largenums = JSON.parse(rawdatalarge);
+    var smallnums = JSON.parse(rawdatasmall);
+
+    largenums = shuffle(largenums);
+    smallnums = shuffle(smallnums);
+
+    var elements = document.getElementsByClassName("num-input");
+
+    var currentElement = 0;
+    // Set large numbers
+    for (var i = 0; i < large; i++) {
+        var inputElement = elements.item(currentElement);
+        inputElement.value = String(largenums.pop());
+        currentElement++;
+    }
+
+    // Set small numbers
+    for (var i = 0; i < small; i++) {
+        var inputElement = elements.item(currentElement);
+        inputElement.value = String(smallnums.pop());
+        currentElement++;
     }
 }
 
