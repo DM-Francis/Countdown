@@ -13,7 +13,7 @@ namespace Countdown.NumbersRound.Solve
     public class Solver : ISolver
     {
         private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-        private static readonly ConcurrentDictionary<int, List<DelegateExpressionPair>> _delegateCache = new ConcurrentDictionary<int, List<DelegateExpressionPair>>();
+        private readonly IDelegateCache _delegateCache;
 
         private readonly ILogger _logger;
 
@@ -21,9 +21,10 @@ namespace Countdown.NumbersRound.Solve
         private int _currentClosestDiff;
         private int _target;
 
-        public Solver(ILogger<Solver> logger)
+        public Solver(ILogger<Solver> logger, IDelegateCache delegateCache)
         {
             _logger = logger;
+            _delegateCache = delegateCache;
         }
 
         public SolveResult GetPossibleSolutions(int target, List<int> availableNums)
@@ -128,7 +129,7 @@ namespace Countdown.NumbersRound.Solve
 
             var outputList = CreateDelegatePairsFromExpressions(expressionList);
 
-            _delegateCache.TryAdd(N, outputList);
+            _delegateCache.Add(N, outputList);
 
             return outputList;
         }

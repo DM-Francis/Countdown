@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Countdown.NumbersRound.Expressions
 {
-    internal class DelegateExpressionPair
+    public class DelegateExpressionPair
     {
         public Func<double[], double> Delegate { get; }
         public Expression Expression { get; }

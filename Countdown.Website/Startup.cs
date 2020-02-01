@@ -1,8 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Countdown.NumbersRound.Solve;
+using Countdown.Website.Caching;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
@@ -30,6 +39,8 @@ namespace Countdown.Website
                     options.SuppressInferBindingSourcesForParameters = true
                 );
 
+            services.AddMemoryCache();
+            services.AddSingleton<IDelegateCache, DelegateMemoryCache>();
             services.AddTransient<ISolver, Solver>();
 
             services.AddSwaggerGen(c =>
@@ -38,7 +49,7 @@ namespace Countdown.Website
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ISolver solver)
         {
             if (env.IsDevelopment())
             {
@@ -65,6 +76,13 @@ namespace Countdown.Website
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
             });
+
+            PopulateCache(solver);
+        }
+
+        private static void PopulateCache(ISolver solver)
+        {
+            solver.GetPossibleSolutions(1365, new List<int> { 1, 1, 5, 7, 10, 10 });
         }
     }
 }
