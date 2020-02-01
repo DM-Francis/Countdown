@@ -7,14 +7,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace Countdown.NumbersRound.Solve
 {
     public class Solver : ISolver
     {
-        private static readonly List<ExpressionType> _operations = new List<ExpressionType> { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
+        private static readonly IReadOnlyCollection<ExpressionType> Operations = new List<ExpressionType>() { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
+        
         private readonly IDelegateCache _delegateCache;
-
         private readonly ILogger _logger;
 
         private readonly List<Solution> _solutions = new List<Solution>();
@@ -43,7 +44,7 @@ namespace Countdown.NumbersRound.Solve
                 CheckExpressionsOfLength(i, availableNumsDouble);
             }
 
-            List<string> solutionStrings = RenderSolutionExpressions();
+            List<string> solutionStrings = RenderSolutionExpressions(_solutions);
             stopWatch.Stop();
 
             _logger.LogInformation("Available numbers = {availableNums}", string.Join(",", availableNums));
@@ -120,7 +121,7 @@ namespace Countdown.NumbersRound.Solve
                     {
                         foreach (var rightTree in GetAllDelegateExpressionPairs(N - x).Select(p => p.Expression))
                         {
-                            var possibleExpressions = GetBinaryExpressions(leftTree, rightTree, _operations);
+                            var possibleExpressions = GetBinaryExpressions(leftTree, rightTree);
                             expressionList.AddRange(possibleExpressions);
                         }
                     }
@@ -134,11 +135,11 @@ namespace Countdown.NumbersRound.Solve
             return outputList;
         }
 
-        private List<Expression> GetBinaryExpressions(Expression left, Expression right, List<ExpressionType> operations)
+        private static List<Expression> GetBinaryExpressions(Expression left, Expression right)
         {
             var output = new List<Expression>();
 
-            foreach (var operation in operations)
+            foreach (var operation in Operations)
             {
                 var newExpr = Expression.MakeBinary(operation, left, right);
                 output.Add(newExpr);
@@ -147,7 +148,7 @@ namespace Countdown.NumbersRound.Solve
             return output;
         }
 
-        private List<DelegateExpressionPair> CreateDelegatePairsFromExpressions(List<Expression> expressionList)
+        private static List<DelegateExpressionPair> CreateDelegatePairsFromExpressions(List<Expression> expressionList)
         {
             var outputList = new List<DelegateExpressionPair>();
             var paramExpression = Expression.Parameter(typeof(double[]));
@@ -166,10 +167,10 @@ namespace Countdown.NumbersRound.Solve
             return outputList;
         }
 
-        private List<string> RenderSolutionExpressions()
+        private static List<string> RenderSolutionExpressions(IEnumerable<Solution> solutions)
         {
             List<string> solStrings = new List<string>();
-            foreach (var sol in _solutions)
+            foreach (var sol in solutions)
             {
                 // Populate values in the expression
                 var populator = new Populator(sol.Parameters);
@@ -184,6 +185,7 @@ namespace Countdown.NumbersRound.Solve
                     expString = expString.Substring(1, expString.Length - 2);
                 }
 
+                expString = expString.Replace('*', '×');
                 solStrings.Add($"{expString} = {sol.Result}");
             }
 
