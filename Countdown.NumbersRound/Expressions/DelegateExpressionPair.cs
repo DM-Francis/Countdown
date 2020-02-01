@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Countdown.NumbersRound.Expressions
 {
-    internal class DelegateExpressionPair
+    public class DelegateExpressionPair
     {
         public Func<double[], double> Delegate { get; set; }
         public Expression Expression { get; set; }
