@@ -58,10 +58,12 @@ namespace Countdown.Website
             app.UseStatusCodePages();
             app.UseStaticFiles();
 
-            app.UseSwagger();
+            app.UseSwagger(c => c.RouteTemplate = "api/{documentName}/swagger.json");
             app.UseSwaggerUI(c =>
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Countdown Solve API v1")
-            );
+            {
+                c.SwaggerEndpoint("/api/v1/swagger.json", "Countdown Solve API v1");
+                c.RoutePrefix = "api";
+            });
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>

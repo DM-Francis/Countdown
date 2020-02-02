@@ -1,11 +1,12 @@
 ﻿using Countdown.NumbersRound.Solve;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Countdown.Website.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/numbers")]
     [ApiController]
     public class NumbersController : ControllerBase
     {
@@ -18,14 +19,14 @@ namespace Countdown.Website.Controllers
 
         [HttpPost]
         [Route("solve", Name = "numbers-solve")]
-        public async Task<IActionResult> SolveAsync(int target, List<int> chosenNums)
+        public IActionResult Solve(int target, List<int> chosenNums)
         {
             if (chosenNums.Count == 0 || chosenNums.Count > 6)
             {
-                return BadRequest();
+                return BadRequest("Must provide between 1 and 6 numbers");
             }
 
-            var solveResult = await Task.Run(() => _solver.GetPossibleSolutions(target, chosenNums));
+            var solveResult =  _solver.GetPossibleSolutions(target, chosenNums);
             return Ok(solveResult);
         }
     }
