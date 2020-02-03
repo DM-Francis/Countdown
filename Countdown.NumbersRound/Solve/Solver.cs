@@ -14,7 +14,7 @@ namespace Countdown.NumbersRound.Solve
     public class Solver : ISolver
     {
         private static readonly IReadOnlyCollection<ExpressionType> Operations = new List<ExpressionType>() { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-        
+
         private readonly IDelegateCache _delegateCache;
         private readonly ILogger _logger;
 
