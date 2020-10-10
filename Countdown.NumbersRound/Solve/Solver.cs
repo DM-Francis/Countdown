@@ -13,19 +13,17 @@ namespace Countdown.NumbersRound.Solve
 {
     public class Solver : ISolver
     {
-        private static readonly IReadOnlyCollection<ExpressionType> Operations = new List<ExpressionType>() { ExpressionType.Add, ExpressionType.Subtract, ExpressionType.Multiply, ExpressionType.Divide };
-
-        private readonly IDelegateCache _delegateCache;
+        private readonly ExpressionFactory _expressionFactory;
         private readonly ILogger _logger;
 
         private readonly List<Solution> _solutions = new List<Solution>();
         private int _currentClosestDiff;
         private int _target;
 
-        public Solver(ILogger<Solver> logger, IDelegateCache delegateCache)
+        public Solver(ILogger<Solver> logger, ExpressionFactory expressionFactory)
         {
             _logger = logger;
-            _delegateCache = delegateCache;
+            _expressionFactory = expressionFactory;
         }
 
         public SolveResult GetPossibleSolutions(int target, List<int> availableNums)
@@ -61,7 +59,7 @@ namespace Countdown.NumbersRound.Solve
             var variations = new Variations<double>(availableNums, N, GenerateOption.WithoutRepetition);
             var variationIterable = variations.Select(l => l.ToArray()).ToArray();
 
-            foreach (var pair in GetAllDelegateExpressionPairs(N))
+            foreach (var pair in _expressionFactory.GetAllDelegateExpressionPairs(N))
             {
                 foreach (var variation in variationIterable)
                 {
@@ -98,73 +96,6 @@ namespace Countdown.NumbersRound.Solve
         private void AddResultToSolutions(Expression exp, double result, double[] variation)
         {
             _solutions.Add(new Solution(expression: exp, parameters: new List<double>(variation), result: result));
-        }
-
-        private List<DelegateExpressionPair> GetAllDelegateExpressionPairs(int N)
-        {
-            if (_delegateCache.TryGetValue(N, out List<DelegateExpressionPair> cacheResult))
-            {
-                return cacheResult;
-            }
-
-            var expressionList = new List<Expression>();
-
-            if (N == 1)
-            {
-                expressionList.Add(Expression.Parameter(typeof(double)));
-            }
-            else
-            {
-                for (int x = 1; x < N; x++)
-                {
-                    foreach (var leftTree in GetAllDelegateExpressionPairs(x).Select(p => p.Expression))
-                    {
-                        foreach (var rightTree in GetAllDelegateExpressionPairs(N - x).Select(p => p.Expression))
-                        {
-                            var possibleExpressions = GetBinaryExpressions(leftTree, rightTree);
-                            expressionList.AddRange(possibleExpressions);
-                        }
-                    }
-                }
-            }
-
-            var outputList = CreateDelegatePairsFromExpressions(expressionList);
-
-            _delegateCache.Add(N, outputList);
-
-            return outputList;
-        }
-
-        private static List<Expression> GetBinaryExpressions(Expression left, Expression right)
-        {
-            var output = new List<Expression>();
-
-            foreach (var operation in Operations)
-            {
-                var newExpr = Expression.MakeBinary(operation, left, right);
-                output.Add(newExpr);
-            }
-
-            return output;
-        }
-
-        private static List<DelegateExpressionPair> CreateDelegatePairsFromExpressions(List<Expression> expressionList)
-        {
-            var outputList = new List<DelegateExpressionPair>();
-            var paramExpression = Expression.Parameter(typeof(double[]));
-            var populator = new Populator(paramExpression);
-
-            foreach (var exp in expressionList)
-            {
-                Expression expWithParam = populator.Populate(exp);
-
-                var lambda = Expression.Lambda<Func<double[], double>>(expWithParam, paramExpression);
-                var pair = new DelegateExpressionPair(del: lambda.Compile(), expression: exp);
-
-                outputList.Add(pair);
-            }
-
-            return outputList;
         }
 
         private static List<string> RenderSolutionExpressions(IEnumerable<Solution> solutions)
