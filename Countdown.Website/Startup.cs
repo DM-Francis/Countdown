@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Countdown.NumbersRound.Solve;
-using Countdown.Website.Caching;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -32,17 +31,13 @@ namespace Countdown.Website
                     options.SuppressInferBindingSourcesForParameters = true
                 );
 
-            services.AddMemoryCache();
-            services.AddSingleton<IDelegateCache, DelegateMemoryCache>();
-            services.AddTransient<ISolver, Solver>();
-
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Countdown Solve API", Version = "v1" })
             );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ISolver solver)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -71,13 +66,6 @@ namespace Countdown.Website
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
             });
-
-            PopulateCache(solver);
-        }
-
-        private static void PopulateCache(ISolver solver)
-        {
-            solver.GetPossibleSolutions(1365, new List<int> { 1, 1, 5, 7, 10, 10 });
         }
     }
 }

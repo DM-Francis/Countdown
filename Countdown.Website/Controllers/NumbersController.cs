@@ -10,13 +10,6 @@ namespace Countdown.Website.Controllers
     [ApiController]
     public class NumbersController : ControllerBase
     {
-        private readonly ISolver _solver;
-
-        public NumbersController(ISolver solver)
-        {
-            _solver = solver;
-        }
-
         [HttpPost]
         [Route("solve", Name = "numbers-solve")]
         public IActionResult Solve(int target, List<int> chosenNums)
@@ -26,7 +19,8 @@ namespace Countdown.Website.Controllers
                 return BadRequest("Must provide between 1 and 6 numbers");
             }
 
-            var solveResult =  _solver.GetPossibleSolutions(target, chosenNums);
+            var solver = new Solver2(target, chosenNums);
+            var solveResult = solver.Solve();
             return Ok(solveResult);
         }
     }

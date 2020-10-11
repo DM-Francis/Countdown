@@ -49,24 +49,4 @@ namespace Countdown.NumbersRound.Solve
             return withBrackets.Substring(1, withBrackets.Length - 2);
         }
     }
-
-    internal class Operation
-    {
-        public Operation(Operator @operator, double a, double b)
-        {
-            Operator = @operator;
-            A = a;
-            B = b;
-        }
-
-        public Operator Operator { get; }
-        public double A { get; }
-        public double B { get; }
-
-        public override string ToString()
-        {
-            double result = Operator.Evaluate(A, B);
-            return $"{Operator.ToString(A, B)} = {result}";
-        }
-    }
 }

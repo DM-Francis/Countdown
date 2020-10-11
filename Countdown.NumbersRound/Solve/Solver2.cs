@@ -12,30 +12,47 @@ namespace Countdown.NumbersRound.Solve
         private readonly Dictionary<NumberCombination, int> _previouslyCheckedCombinations = new Dictionary<NumberCombination, int>();
         private readonly int _target;
         private readonly List<int> _availableNums;
-        private List<List<Operation>> _solutions = new List<List<Operation>>();
+        private List<Solution> _solutions = new List<Solution>();
         private bool _isSolved = false;
+        private int _closestDiff;
 
         public Solver2(int target, List<int> availableNums)
         {
             _target = target;
             _availableNums = availableNums;
+            _closestDiff = target;
         }
 
-        public int Solve()
+        public SolveResult Solve()
         {
             if (_isSolved)
                 throw new InvalidOperationException("Already solved.");
 
-            CheckNumbersForSolution(_availableNums.Select(n => (double)n).ToList(), _target, new List<Operation>());
+
+            var availableNumbers = _availableNums.Select(n => (double)n).ToList();
+            var solutionStrings = new List<string>();
+
+            if (availableNumbers.Contains(_target))
+            {
+                _closestDiff = 0;
+                solutionStrings.Add($"{_target} = {_target}");
+            }
+
+            CheckNumbersForSolution(availableNumbers, _target, new List<Operation>());
             DedupeSolutions();
             _isSolved = true;
 
-            return _solutions.Count;
+            foreach(var solution in _solutions)
+            {
+                solutionStrings.Add(solution.ToString());
+            }
+
+            return new SolveResult(_closestDiff, solutionStrings);
         }
 
         private void CheckNumbersForSolution(List<double> numbers, double target, List<Operation> previousOperations)
         {
-            if (numbers.Count == 1 || numbers.Contains(target))
+            if (numbers.Count == 1)
                 return;
 
             var combination = new NumberCombination(numbers);
@@ -45,9 +62,7 @@ namespace Countdown.NumbersRound.Solve
 
             _previouslyCheckedCombinations[combination] = previousOperations.Count;
 
-            var allPairs = new Variations<double>(numbers, 2, GenerateOption.WithoutRepetition);
-
-            foreach(var pair in allPairs)
+            foreach(var pair in new Variations<double>(numbers, 2, GenerateOption.WithoutRepetition))
             {
                 if (pair[0] < pair[1])
                     continue;
@@ -56,16 +71,23 @@ namespace Countdown.NumbersRound.Solve
                 {
                     double newNum = @operator.Evaluate(pair[0], pair[1]);
 
-                    if (newNum == target)
-                    {
-                        var solutionOperationsList = new List<Operation>(previousOperations);
-                        solutionOperationsList.Add(new Operation(@operator, pair[0], pair[1]));
-                        _solutions.Add(solutionOperationsList);
-                        continue;
-                    }
-
                     if (newNum % 1 != 0 || newNum < 0 || newNum == pair[0] || newNum == pair[1])
                         continue;
+
+                    double newDiff = Math.Abs(newNum - target);
+                    if (newDiff <= _closestDiff)
+                    {
+                        if (newDiff < _closestDiff)
+                        {
+                            _solutions.Clear();
+                            _closestDiff = (int)newDiff;
+                        }
+
+                        var solutionOperationsList = new List<Operation>(previousOperations);
+                        solutionOperationsList.Add(new Operation(@operator, pair[0], pair[1]));
+                        _solutions.Add(new Solution(solutionOperationsList));
+                        continue;
+                    }
 
                     var newOperationsList = new List<Operation>(previousOperations);
                     newOperationsList.Add(new Operation(@operator, pair[0], pair[1]));
@@ -83,7 +105,10 @@ namespace Countdown.NumbersRound.Solve
         private void DedupeSolutions()
         {
             var dedupedSolutions = _solutions.Distinct(new SolutionComparer());
-            _solutions = dedupedSolutions.OrderBy(d => d.Count).ToList();
+            _solutions = dedupedSolutions
+                .OrderBy(s => s.Operations.Count)
+                .ThenBy(s => s.Operations.Last().Result)
+                .ToList();
         }
     }
 }
