@@ -12,6 +12,7 @@ namespace Countdown.NumbersRound.Solve
     {
         public IReadOnlyList<Operation> Operations { get; }
         public int Result => (int)Operations.Last().Result;
+        public IEnumerable<int> NumbersUsed => GetNumbersUsed(AsExpression());
 
         public Solution(IList<Operation> operations)
         {
@@ -68,6 +69,21 @@ namespace Countdown.NumbersRound.Solve
             string expWithoutTrailingBrackets = rawExpression.Substring(1, rawExpression.Length - 2);
 
             return $"{expWithoutTrailingBrackets} = {Result}";
+        }
+
+        private static IEnumerable<int> GetNumbersUsed(Expression expression)
+        {
+            if (expression is ConstantExpression constant)
+            {
+                yield return (int)(double)constant.Value;
+            }
+            else if (expression is BinaryExpression binary)
+            {
+                foreach (var num in GetNumbersUsed(binary.Left))
+                    yield return num;
+                foreach (var num in GetNumbersUsed(binary.Right))
+                    yield return num;
+            }
         }
     }
 }

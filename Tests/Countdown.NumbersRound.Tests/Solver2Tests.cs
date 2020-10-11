@@ -63,5 +63,21 @@ namespace Countdown.NumbersRound.Tests
             Assert.Equal(0, result.ClosestDiff);
             Assert.NotEmpty(result.Solutions);
         }
+
+        [Fact]
+        public void DoesntMissSimplerSolutions()
+        {
+            // Assemble
+            var availableNums = new List<int> { 1, 2, 3, 4, 5, 6 };
+            var solver = new Solver2(8, availableNums);
+
+            // Act
+            var result = solver.Solve();
+
+            // Assert
+            Assert.Equal(0, result.ClosestDiff);
+            Assert.Contains("4 * 2 = 8", result.Solutions);
+            Assert.Contains("5 + 3 = 8", result.Solutions);
+        }
     }
 }
