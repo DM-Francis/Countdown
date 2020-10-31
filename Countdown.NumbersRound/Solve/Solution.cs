@@ -67,8 +67,9 @@ namespace Countdown.NumbersRound.Solve
             BinaryExpression expression = AsExpression();
             string rawExpression = expression.ToString();
             string expWithoutTrailingBrackets = rawExpression.Substring(1, rawExpression.Length - 2);
+            string final = expWithoutTrailingBrackets.Replace('*', '×');
 
-            return $"{expWithoutTrailingBrackets} = {Result}";
+            return $"{final} = {Result}";
         }
 
         private static IEnumerable<int> GetNumbersUsed(Expression expression)

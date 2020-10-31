@@ -76,7 +76,7 @@ namespace Countdown.NumbersRound.Tests
 
             // Assert
             Assert.Equal(0, result.ClosestDiff);
-            Assert.Contains("4 * 2 = 8", result.Solutions);
+            Assert.Contains("4 × 2 = 8", result.Solutions);
             Assert.Contains("5 + 3 = 8", result.Solutions);
         }
     }
