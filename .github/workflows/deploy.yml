@@ -28,7 +28,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         fingerprint: ${{ secrets.HOST_FINGERPRINT }}
-        script: rm -r /var/www/countdown/*
+        script: rm -rf /var/www/countdown/*
 
     - name: SCP Deploy
       uses: appleboy/scp-action@v0.1.7
