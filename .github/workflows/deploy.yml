@@ -40,4 +40,4 @@ jobs:
         fingerprint: ${{ secrets.HOST_FINGERPRINT }}
         source: publish/*
         target: /var/www/countdown
-        # strip_components: 1  # Strip 'publish/' from the file path, so the resultant paths are countdown/*, not countdown/publish/*
+        strip_components: 1  # Strip 'publish/' from the file path, so the resultant paths are countdown/*, not countdown/publish/*
