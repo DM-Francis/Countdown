@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+   - cron: '0 6 15 * *'
+
+jobs:
+  deploy:
+  
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4            
+      with:
+        dotnet-version: 8.0.x       
+      
+    - name: Publish
+      run: dotnet publish --configuration Release --runtime linux-arm64 --output publish --self-contained true
+
+    - name: SCP Deploy
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        fingerprint: ${{ secrets.HOST_FINGERPRINT }}
+        rm: true
+        source: publish/*
+        target: /var/www/countdown
+        # strip_components: 1  # Strip 'publish/' from the file path, so the resultant paths are countdown/*, not countdown/publish/*
