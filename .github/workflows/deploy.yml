@@ -20,6 +20,16 @@ jobs:
     - name: Publish
       run: dotnet publish Countdown.Website --configuration Release --runtime linux-arm64 --output publish --self-contained true
 
+    - name: Remove existing files
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        port: ${{ secrets.PORT }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        fingerprint: ${{ secrets.HOST_FINGERPRINT }}
+        script: rm -r /var/www/countdown/*
+
     - name: SCP Deploy
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -28,7 +38,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         fingerprint: ${{ secrets.HOST_FINGERPRINT }}
-        rm: true
         source: publish/*
         target: /var/www/countdown
         # strip_components: 1  # Strip 'publish/' from the file path, so the resultant paths are countdown/*, not countdown/publish/*
