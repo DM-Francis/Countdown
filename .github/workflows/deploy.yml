@@ -24,6 +24,7 @@ jobs:
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.HOST }}
+        port: ${{ secrets.PORT }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         fingerprint: ${{ secrets.HOST_FINGERPRINT }}
