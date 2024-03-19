@@ -41,3 +41,13 @@ jobs:
         source: publish/*
         target: /var/www/countdown
         strip_components: 1  # Strip 'publish/' from the file path, so the resultant paths are countdown/*, not countdown/publish/*
+
+    - name: Restart site
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        port: ${{ secrets.PORT }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        fingerprint: ${{ secrets.HOST_FINGERPRINT }}
+        script: sudo systemctl restart countdown-aspnet.service
