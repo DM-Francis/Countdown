@@ -16,7 +16,6 @@ namespace Countdown.Website
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureLogging(logging => logging.AddAzureWebAppDiagnostics());
                 });
     }
 }
